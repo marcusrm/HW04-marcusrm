@@ -19,7 +19,7 @@ void HW04App::setup()
 {
 	//read in file to array
 	vector<Entry> *data = new vector<Entry>();
-	string fileName = "C:\Users\RJ\Documents\CSE274\HW04-marcusrm\srcStarbucks_2006.csv";
+	string fileName = "../src/Starbucks_2006.csv";
 	importData(data,fileName);
 
 }

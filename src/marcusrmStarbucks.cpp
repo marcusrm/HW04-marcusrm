@@ -1,6 +1,10 @@
 #pragma once
 #include "marcusrmStarbucks.h"
+#include "cinder/app/AppBasic.h"
+#include "cinder/gl/gl.h"
 
+using namespace ci;
+using namespace ci::app;
 using namespace std;
 
 marcusrmStarbucks :: marcusrmStarbucks(){
@@ -31,14 +35,14 @@ void importData(vector<Entry>* locations, string fileName){
 			temp->identifier = (string)buffer;
 
 			fid.getline(buffer,256,',');
-			temp->x  = (double)*buffer;
+			temp->x  = atof(buffer); //NOTE: THIS MIGHT BE GIVING ME TOO MANY SIG FIGS
 
 			fid.get(buffer,256,'\r');
-			temp->y  = (double)*buffer;
+			temp->y  = atof(buffer); //NOTE: THIS MIGHT BE GIVING ME TOO MANY SIG FIGS
 
 			locations->push_back(*temp);
 
-			cout << (locations->back()).identifier << ","<< (locations->back()).x << ","<< (locations->back()).y << endl ;
+			console() << (locations->back()).identifier << ","<< (locations->back()).x << ","<< (locations->back()).y << std::endl ;
 
 			index++;
 		}
