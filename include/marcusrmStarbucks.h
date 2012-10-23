@@ -11,8 +11,19 @@ private:
 
 public:
 
+	class Leaf { 
+	public:
+		Entry* data;
+		Leaf* leftChild;
+		Leaf* rightChild;
+
+	};
+
+
+	Leaf* tree_head;
+
 	//constructor
-	marcusrmStarbucks();
+	marcusrmStarbucks(vector<Entry*> locations);
 
 
 	//destructor
@@ -30,7 +41,9 @@ public:
 	 *       to be the "same location" if both |x1 - x2| <= 0.00001 and |y1 - y2| < 0.00001
 	 */
 
-	void build(Entry* c, int n);
+	void burnTree(Leaf* tree_head);
+
+	void build(vector<Entry*> locations, int n);
 	
 	/*
 	 * Return a pointer to the entry that is closest to the given coordinates. Your
@@ -39,17 +52,11 @@ public:
 	Entry* getNearest(double x, double y);
 
 	//insert a node into the tree of locations
-	void insert(Entry* current);
-
-	
-
-	//These methods use the unsorted array approach to find the correct position.
-	void insertSlow(Entry* current);
+	Leaf* insert(Entry* c, Leaf* head, bool xlevel);
 
 	Entry* getNearestSlow(double x, double y);
-
 
 };
 
 //imports the data from a file into an array called 'locations'
-	void importData(vector<Entry>* locations, string fileName);
+	void importData(vector<Entry*>* locations, string fileName);

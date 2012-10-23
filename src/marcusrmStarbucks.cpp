@@ -7,7 +7,12 @@ using namespace ci;
 using namespace ci::app;
 using namespace std;
 
-marcusrmStarbucks :: marcusrmStarbucks(){
+marcusrmStarbucks :: marcusrmStarbucks(vector<Entry*> locations){
+	
+	this->build(locations, locations.size());
+	this->tree_head = NULL; //how to do this?
+
+
 	//IMPORT data in file to buffer
 	//BUILD buffer into tree
 	//
@@ -15,9 +20,27 @@ marcusrmStarbucks :: marcusrmStarbucks(){
 
 
 marcusrmStarbucks :: ~marcusrmStarbucks(){
-	//recursively delete all entries
-	//free all pointers
-	//set pointers to zero.
+	
+	burnTree(this->tree_head);
+	this->tree_head = NULL;
+}
+
+void marcusrmStarbucks :: burnTree(Leaf* tree_head){
+
+	//recursive stop case
+	if(tree_head == NULL)
+		return;
+	
+	//recursive call delete on children
+	burnTree(tree_head->leftChild);
+	burnTree(tree_head->rightChild);
+	
+	//delete information on current node:
+	delete (tree_head->data->identifier);
+	delete (tree_head->data->x);
+	delete (tree_head->data->y);
+	tree_head = NULL;
+
 }
 
 void importData(vector<Entry>* locations, string fileName){
@@ -58,18 +81,51 @@ void importData(vector<Entry>* locations, string fileName){
 	}
 }
 
-void marcusrmStarbucks :: build(Entry* c, int n){
+void marcusrmStarbucks :: build(vector<Entry*> locations, int n){
 
 	for(int i = 0; i < n; i++){
-		if(c != NULL)
-			this->insert(c + n*sizeof(Entry));
+		if(locations.at(i) != NULL){
+			
+			Leaf* nextLeaf = this->insert(locations.at(i), this->tree_head, true);
+
+			//Allocate space for the new Leaf's members
+
+			Leaf* leftChild = new Leaf;
+			Leaf* rightChild = new Leaf;
+			Entry* data = new Entry;
+
+			nextLeaf->leftChild = leftChild;
+			nextLeaf->rightChild = rightChild;
+			nextLeaf->data = data;
+
+		}
 	}
 
 }
 
-void marcusrmStarbucks :: insert(Entry* c){
+Leaf* marcusrmStarbucks :: insert(Entry* c, Leaf* head, bool xlevel){
 
+	if(head == NULL)
+		return head; //NEED TO ASSIGN NODE AT THIS POINT.
 
+	if(xlevel){
+		double difference = abs(head->data->x - c->x);
+
+		if(difference > 0) 
+			insert(c, head->rightChild, !xlevel);
+		else
+			insert(c, head->leftChild, !xlevel);
+	}
+	else{
+		double difference = abs(head->data->y - c->y);
+
+		if(difference > 0) 
+			insert(c, head->rightChild, !xlevel);
+		else
+			insert(c, head->leftChild, !xlevel);
+
+	}
+	
 
 }
 
@@ -84,10 +140,6 @@ Entry* marcusrmStarbucks :: getNearest(double x, double y){
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-void marcusrmStarbucks :: insertSlow(Entry* current){
-
-
-}
 
 Entry* marcusrmStarbucks :: getNearestSlow(double x, double y){
 
