@@ -6,6 +6,9 @@
 #include <vector>
 
 class marcusrmStarbucks : public Starbucks {
+private:
+	const double MARGIN = 0.000001; //this might be a few zeros off
+
 public:
 
 	//constructor

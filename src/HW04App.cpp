@@ -19,6 +19,8 @@ void HW04App::setup()
 {
 	//read in file to array
 	vector<Entry> *data = new vector<Entry>();
+
+	//create input method for file path
 	string fileName = "../src/Starbucks_2006.csv";
 	importData(data,fileName);
 

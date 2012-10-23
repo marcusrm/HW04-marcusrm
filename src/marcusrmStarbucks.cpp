@@ -29,7 +29,7 @@ void importData(vector<Entry>* locations, string fileName){
 		char* buffer = new char[256];
 		Entry* temp = new Entry;
 
-		while(!fid.eof()){
+		while(!fid.eof()){//Brinkman says that this shouldn't work.
 
 			fid.getline(buffer,256,',');
 			temp->identifier = (string)buffer;
@@ -37,12 +37,13 @@ void importData(vector<Entry>* locations, string fileName){
 			fid.getline(buffer,256,',');
 			temp->x  = atof(buffer); //NOTE: THIS MIGHT BE GIVING ME TOO MANY SIG FIGS
 
-			fid.get(buffer,256,'\r');
+			fid.getline(buffer,256,'\r');
 			temp->y  = atof(buffer); //NOTE: THIS MIGHT BE GIVING ME TOO MANY SIG FIGS
 
 			locations->push_back(*temp);
 
-			console() << (locations->back()).identifier << ","<< (locations->back()).x << ","<< (locations->back()).y << std::endl ;
+			//checking output for correctness:
+			//console() << (locations->back()).identifier << ","<< (locations->back()).x << ","<< (locations->back()).y << std::endl ;
 
 			index++;
 		}
