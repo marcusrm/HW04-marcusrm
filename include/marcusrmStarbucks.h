@@ -5,25 +5,24 @@
 #include <fstream>
 #include <vector>
 
-class marcusrmStarbucks : public Starbucks {
-private:
-	const double MARGIN = 0.000001; //this might be a few zeros off
-
+class Leaf { 
 public:
+	Entry* data;
+	Leaf* leftChild;
+	Leaf* rightChild;
 
-	class Leaf { 
-	public:
-		Entry* data;
-		Leaf* leftChild;
-		Leaf* rightChild;
+};
 
-	};
-
+class marcusrmStarbucks : public Starbucks {
+public:
+	const double MARGIN = 0.000001; //this might be a few zeros off
+	
+	vector<Entry*>* locations;
 
 	Leaf* tree_head;
 
 	//constructor
-	marcusrmStarbucks(vector<Entry*> locations);
+	marcusrmStarbucks();
 
 
 	//destructor
@@ -43,7 +42,7 @@ public:
 
 	void burnTree(Leaf* tree_head);
 
-	void build(vector<Entry*> locations, int n);
+	void build();
 	
 	/*
 	 * Return a pointer to the entry that is closest to the given coordinates. Your
@@ -55,6 +54,8 @@ public:
 	Leaf* insert(Entry* c, Leaf* head, bool xlevel);
 
 	Entry* getNearestSlow(double x, double y);
+
+	Leaf* search(double x, double y, Leaf* head, bool xlevel);
 
 };
 
