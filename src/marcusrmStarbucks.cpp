@@ -99,6 +99,9 @@ void marcusrmStarbucks :: build(){
 
 			//Allocate space for the new Leaf's members
 
+			//may be allocating this space incorrectly.
+			//check to see if i can do it in the insert method so that the 
+			//children can be assigned to null to signify ends of tree
 			Leaf* leftChild = new Leaf;
 			Leaf* rightChild = new Leaf;
 			Entry* data = new Entry;
