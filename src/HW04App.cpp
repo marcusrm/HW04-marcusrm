@@ -34,10 +34,37 @@ void HW04App::setup()
 	myStarbucks->build(NULL,NULL);
 	//myStarbucks->printInOrder(myStarbucks->tree_head);
 
-	
 	Entry* slowSolution = new Entry;
 	Entry* fastSolution = new Entry;
 
+	slowSolution = myStarbucks->getNearestSlow(x,y);
+	fastSolution = myStarbucks->getNearest(x,y);
+
+	console() << "Slow solution: " << endl << "City: " << slowSolution->identifier << endl
+		<< "x: " << slowSolution->x << endl << "y: " << slowSolution->y << endl;
+	console() << "Fast solution: " << endl << "City: " << fastSolution->identifier << endl
+		<< "x: " << fastSolution->x << endl << "y: " << fastSolution->y << endl;
+
+	//~~~~~~~~~~~~~~ACCURACY TESTING CODE~~~~~~~~~~~~~~//
+	/*
+	for(int i = 0; i < 10; i++){
+		x = ((double)rand())/RAND_MAX;
+		y = ((double)rand())/RAND_MAX;
+
+		console() << "x,y: " << x << "," << y << endl;
+
+		slowSolution = myStarbucks->getNearestSlow(x,y);
+		fastSolution = myStarbucks->getNearest(x,y);
+
+		console() << "Slow solution: " << endl << "City: " << slowSolution->identifier << endl
+			<< "x: " << slowSolution->x << endl << "y: " << slowSolution->y << endl;
+		console() << "Fast solution: " << endl << "City: " << fastSolution->identifier << endl
+			<< "x: " << fastSolution->x << endl << "y: " << fastSolution->y << endl;
+	}
+	*/
+
+	/*	
+	//~~~~~~~~~~~~~~TIMING TESTING CODE~~~~~~~~~~~~~~//
 	//Thanks to Dr. Brinkman for showing us these time-telling features in boost.
 	boost::posix_time::ptime startSlow = boost::posix_time::microsec_clock::local_time();
 	for(int i = 0; i < 10000; i++){
@@ -57,9 +84,8 @@ void HW04App::setup()
 		<< "x: " << slowSolution->x << endl << "y: " << slowSolution->y << endl;
 	console() << "Fast solution: " << msDiffFast << endl << "City: " << fastSolution->identifier << endl
 		<< "x: " << fastSolution->x << endl << "y: " << fastSolution->y << endl;
+	*/
 
-	
-	//create input method for file path
 }
 
 void HW04App::mouseDown( MouseEvent event )

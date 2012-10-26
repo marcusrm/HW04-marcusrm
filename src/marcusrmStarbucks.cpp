@@ -157,7 +157,6 @@ Entry* marcusrmStarbucks :: getNearest(double x, double y){
 
 Leaf* marcusrmStarbucks :: search(double x, double y, Leaf* head, bool xlevel){
 
-	//this is probably a bad return case.
 	if(head->data == NULL)
 		return NULL;
 
@@ -174,24 +173,40 @@ Leaf* marcusrmStarbucks :: search(double x, double y, Leaf* head, bool xlevel){
 
 			if(candidate == NULL)
 				candidate = head;
-			/*else{
+			else{
 				distance = sqrt((candidate->data->x - x)*(candidate->data->x - x) + (candidate->data->y - y)*(candidate->data->y - y));
 
-				if(distance > abs(candidate->data->x - x))
-					candidate = search(x, y, head->leftChild, !xlevel);
-			}*/
+				if(distance > abs(candidate->data->x - x)){
+					Leaf* twinCandidate = search(x, y, head->leftChild, !xlevel);
+
+					if(twinCandidate != NULL){
+						double twinDistance = sqrt((twinCandidate->data->x - x)*(twinCandidate->data->x - x) + (twinCandidate->data->y - y)*(twinCandidate->data->y - y));
+
+						if(twinDistance < distance)
+							candidate = twinCandidate;
+					}
+				}
+			}
 		}
 		else{//~~~~~~ LEFT SIDE ~~~~~~~~//
 			candidate = search(x, y, head->leftChild, !xlevel);
 			
 			if(candidate == NULL)
 				candidate = head;
-			/*else{
+			else{
 				distance = sqrt((candidate->data->x - x)*(candidate->data->x - x) + (candidate->data->y - y)*(candidate->data->y - y));
 
-				if(distance > abs(candidate->data->x - x))
-					candidate = search(x, y, head->rightChild, !xlevel);
-			}*/
+				if(distance > abs(candidate->data->x - x)){
+					Leaf* twinCandidate = search(x, y, head->rightChild, !xlevel);
+					
+					if(twinCandidate != NULL){
+						double twinDistance = sqrt((twinCandidate->data->x - x)*(twinCandidate->data->x - x) + (twinCandidate->data->y - y)*(twinCandidate->data->y - y));
+
+						if(twinDistance < distance)
+							candidate = twinCandidate;
+					}
+				}
+			}
 		}
 	}
 //~~~~~~ Y LEVEL ~~~~~~~~//
@@ -201,24 +216,40 @@ Leaf* marcusrmStarbucks :: search(double x, double y, Leaf* head, bool xlevel){
 						
 			if(candidate == NULL)
 				candidate = head;
-			/*else{
+			else{
 				distance = sqrt((candidate->data->x - x)*(candidate->data->x - x) + (candidate->data->y - y)*(candidate->data->y - y));
 
-				if(distance > abs(candidate->data->y - y))
-					candidate = search(x, y, head->leftChild, !xlevel);
-			}*/
+				if(distance > abs(candidate->data->y - y)){
+					Leaf* twinCandidate = search(x, y, head->leftChild, !xlevel);
+					
+					if(twinCandidate != NULL){
+						double twinDistance = sqrt((twinCandidate->data->x - x)*(twinCandidate->data->x - x) + (twinCandidate->data->y - y)*(twinCandidate->data->y - y));
+
+						if(twinDistance < distance)
+							candidate = twinCandidate;
+					}
+				}
+			}
 		}
 		else{//~~~~~~ LEFT SIDE ~~~~~~~~//
 			candidate = search(x, y, head->leftChild, !xlevel);
 						
 			if(candidate == NULL)
 				candidate = head;
-			/*else{
+			else{
 				distance = sqrt((candidate->data->x - x)*(candidate->data->x - x) + (candidate->data->y - y)*(candidate->data->y - y));
 
-				if(distance > abs(candidate->data->y - y))
-					candidate = search(x, y, head->rightChild, !xlevel);
-			}*/
+				if(distance > abs(candidate->data->y - y)){
+					Leaf* twinCandidate = search(x, y, head->rightChild, !xlevel);
+					
+					if(twinCandidate != NULL){
+						double twinDistance = sqrt((twinCandidate->data->x - x)*(twinCandidate->data->x - x) + (twinCandidate->data->y - y)*(twinCandidate->data->y - y));
+
+						if(twinDistance < distance)
+							candidate = twinCandidate;
+					}
+				}
+			}
 		}
 	}
 	
