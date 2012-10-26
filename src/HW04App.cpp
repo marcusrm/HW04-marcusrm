@@ -14,16 +14,33 @@ class HW04App : public AppBasic {
 	void mouseDown( MouseEvent event );	
 	void update();
 	void draw();
+	void prepareSettings(Settings* settings);
+
+	//Width and height of the screen
+	static const int kAppWidth=700;
+	static const int kAppHeight=700;
+	static const int kTextureSize=1024; //Must be the next power of 2 bigger or equal to app dimensions
+
+	marcusrmStarbucks* myStarbucks;
+	Entry* slowSolution;
+	Entry* fastSolution;
+	double x;
+	double y;
 };
+
+void HW04App::prepareSettings(Settings* settings){
+	(*settings).setWindowSize(kAppWidth,kAppHeight);
+	(*settings).setResizable(false);
+}
 
 void HW04App::setup()
 {
 	srand ( unsigned ( time (NULL) ) );
 	
-	double x = 0.720394;
-	double y = 0.394542;
+	x = 0.5;
+	y = 0.5;
 
-	marcusrmStarbucks* myStarbucks = new marcusrmStarbucks();
+	myStarbucks = new marcusrmStarbucks();
 
 	string fileName = "../src/Starbucks_2006.csv";
 	myStarbucks->importData(fileName);
@@ -34,9 +51,10 @@ void HW04App::setup()
 	myStarbucks->build(NULL,NULL);
 	//myStarbucks->printInOrder(myStarbucks->tree_head);
 
-	Entry* slowSolution = new Entry;
-	Entry* fastSolution = new Entry;
+	slowSolution = new Entry;
+	fastSolution = new Entry;
 
+	/*
 	slowSolution = myStarbucks->getNearestSlow(x,y);
 	fastSolution = myStarbucks->getNearest(x,y);
 
@@ -45,8 +63,10 @@ void HW04App::setup()
 	console() << "Fast solution: " << endl << "City: " << fastSolution->identifier << endl
 		<< "x: " << fastSolution->x << endl << "y: " << fastSolution->y << endl;
 
+	*/
+
 	//~~~~~~~~~~~~~~ACCURACY TESTING CODE~~~~~~~~~~~~~~//
-	/*
+	
 	for(int i = 0; i < 10; i++){
 		x = ((double)rand())/RAND_MAX;
 		y = ((double)rand())/RAND_MAX;
@@ -61,7 +81,7 @@ void HW04App::setup()
 		console() << "Fast solution: " << endl << "City: " << fastSolution->identifier << endl
 			<< "x: " << fastSolution->x << endl << "y: " << fastSolution->y << endl;
 	}
-	*/
+	
 
 	/*	
 	//~~~~~~~~~~~~~~TIMING TESTING CODE~~~~~~~~~~~~~~//
@@ -98,8 +118,35 @@ void HW04App::update()
 
 void HW04App::draw()
 {
-	// clear out the window with black
-	gl::clear( Color( 0, 0, 0 ) ); 
+
+
+/*
+	gl::color(0.5,0.5,0.5);
+	for(int i = 0; i < (*(myStarbucks->locations)).size(); i++){
+		Vec2f coordinate = Vec2f(((*(myStarbucks->locations)).at(i))->x * 700, 700 - (((*(myStarbucks->locations)).at(i))->y * 700));
+		gl::drawSolidCircle(coordinate, 2, 0);
+	}
+	*/
+
+/*
+	//~~~~~~~~~WHEN I INCLUDE THIS PART, MY FAST SOLUTION BEGINS TO GET LESS ACCURATE, THERE MUST BE SOME
+	//KIND OF OPTIMIZATION GOING ON TO GET THE SOLUTION QUICKLY AND FEED IT TO THE DRAW FUNCTION HERE.
+
+	//slow
+	gl::color(1,0,0);
+	Vec2f coordinate = Vec2f(slowSolution->x * 700, 700 - (slowSolution->y * 700));
+	gl::drawSolidCircle(coordinate, 2, 0);
+
+	//real x y
+	gl::color(0,0,1);
+	coordinate = Vec2f(x * 700, 700 - (y * 700));
+	gl::drawSolidCircle(coordinate, 2, 0);
+
+		//fast
+	gl::color(0,1,0);
+	coordinate = Vec2f(fastSolution->x * 700, 700 - (fastSolution->y * 700));
+	gl::drawSolidCircle(coordinate, 2, 0);
+	*/
 }
 
 CINDER_APP_BASIC( HW04App, RendererGl )
