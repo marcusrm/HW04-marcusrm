@@ -5,17 +5,22 @@
 #include <fstream>
 #include <vector>
 
+#define MARGIN 0.00001
+
 class Leaf { 
 public:
 	Entry* data;
 	Leaf* leftChild;
 	Leaf* rightChild;
 
+	Leaf(){
+		this->data = NULL;
+	}
+
 };
 
 class marcusrmStarbucks : public Starbucks {
 public:
-	const double MARGIN = 0.000001; //this might be a few zeros off
 	
 	vector<Entry*>* locations;
 
@@ -23,7 +28,6 @@ public:
 
 	//constructor
 	marcusrmStarbucks();
-
 
 	//destructor
 	~marcusrmStarbucks();
@@ -42,13 +46,16 @@ public:
 
 	void burnTree(Leaf* tree_head);
 
-	void build();
+	virtual void build(Entry* c, int n);
+
+	//imports the data from a file into an array called 'locations'
+	void importData(string fileName);
 	
 	/*
 	 * Return a pointer to the entry that is closest to the given coordinates. Your
 	 *  answer may be approximate, but then you will lose points on the "Accuracy" quality measure
 	 */
-	Entry* getNearest(double x, double y);
+	virtual Entry* getNearest(double x, double y);
 
 	//insert a node into the tree of locations
 	Leaf* insert(Entry* c, Leaf* head, bool xlevel);
@@ -57,7 +64,6 @@ public:
 
 	Leaf* search(double x, double y, Leaf* head, bool xlevel);
 
-};
+	void printInOrder(Leaf* head);
 
-//imports the data from a file into an array called 'locations'
-	void importData(vector<Entry*>* locations, string fileName);
+};

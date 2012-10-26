@@ -17,11 +17,36 @@ class HW04App : public AppBasic {
 
 void HW04App::setup()
 {
-	marcusrmStarbucks* myStarbucks = new marcusrmStarbucks();
-	//create input method for file path
-	string fileName = "../src/Starbucks_2006.csv";
-	importData(myStarbucks->locations,fileName);
+	srand ( unsigned ( time (NULL) ) );
+	
+	double x = 0.720394;
+	double y = 0.394542;
 
+	marcusrmStarbucks* myStarbucks = new marcusrmStarbucks();
+
+	string fileName = "../src/Starbucks_2006.csv";
+	myStarbucks->importData(fileName);
+
+	//use built in shuffle function on vector
+	random_shuffle((*(myStarbucks->locations)).begin(), (*(myStarbucks->locations)).end());
+
+	myStarbucks->build(NULL,NULL);
+	//myStarbucks->printInOrder(myStarbucks->tree_head);
+
+	
+	Entry* slowSolution = new Entry;
+	Entry* fastSolution = new Entry;
+
+	slowSolution = myStarbucks->getNearestSlow(x,y);
+	fastSolution = myStarbucks->getNearest(x,y);
+
+	console() << "Slow solution: " << endl << "City: " << slowSolution->identifier << endl
+		<< "x: " << slowSolution->x << endl << "y: " << slowSolution->y << endl;
+	console() << "Fast solution: " << endl << "City: " << fastSolution->identifier << endl
+		<< "x: " << fastSolution->x << endl << "y: " << fastSolution->y << endl;
+
+	
+	//create input method for file path
 }
 
 void HW04App::mouseDown( MouseEvent event )

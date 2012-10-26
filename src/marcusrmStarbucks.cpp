@@ -11,15 +11,11 @@ marcusrmStarbucks :: marcusrmStarbucks(){
 	this->locations = new vector<Entry*>();
 	
 	//need to randomize list first
-	this->tree_head = NULL; //how to do this?
-	
-	this->build();
+	this->tree_head = new Leaf();
+	this->tree_head->data = new Entry;
+	this->tree_head->leftChild = new Leaf();
+	this->tree_head->rightChild = new Leaf();
 
-
-
-	//IMPORT data in file to buffer
-	//BUILD buffer into tree
-	//
 }
 
 
@@ -32,7 +28,7 @@ marcusrmStarbucks :: ~marcusrmStarbucks(){
 void marcusrmStarbucks :: burnTree(Leaf* tree_head){
 
 	//recursive stop case
-	if(tree_head == NULL){
+	if(tree_head->data == NULL){
 		return;
 	}
 	
@@ -50,16 +46,16 @@ void marcusrmStarbucks :: burnTree(Leaf* tree_head){
 
 }
 
-void importData(vector<Entry>* locations, string fileName){
+void marcusrmStarbucks :: importData(string fileName){
 
 	try{
 		ifstream fid (fileName, ifstream::in);
 
 		int index = 0;
 		char* buffer = new char[256];
-		Entry* temp = new Entry;
-
-		while(!fid.eof()){//Brinkman says that this shouldn't work.
+		
+		while(!fid.eof()){//Brinkman says that this eof shouldn't work. (last bits)
+			Entry* temp = new Entry;
 
 			fid.getline(buffer,256,',');
 			temp->identifier = (string)buffer;
@@ -69,11 +65,11 @@ void importData(vector<Entry>* locations, string fileName){
 
 			fid.getline(buffer,256,'\r');
 			temp->y  = atof(buffer); //NOTE: THIS MIGHT BE GIVING ME TOO MANY SIG FIGS
-
-			locations->push_back(*temp);
+			
+			(*(this->locations)).push_back(temp);
 
 			//checking output for correctness:
-			//console() << (locations->back()).identifier << ","<< (locations->back()).x << ","<< (locations->back()).y << std::endl ;
+			//console() << (locations->back())->identifier << ","<< (locations->back())->x << ","<< (locations->back())->y << std::endl ;
 
 			index++;
 		}
@@ -88,56 +84,67 @@ void importData(vector<Entry>* locations, string fileName){
 	}
 }
 
-void marcusrmStarbucks :: build(){
+void marcusrmStarbucks :: build(Entry* c, int n){
 
-	int n = (*(this->locations)).size();
+	n = (*(this->locations)).size();
 
-	for(int i = 0; i < n; i++){
-		if((*(this->locations)).at(i) != NULL){
+	//set the head of the tree to the values of the first node:
+	this->tree_head->data = (*(this->locations)).at(0);
+
+	//now build the rest of the tree:
+	for(int i = 1; i < n; i++){
 			
-			Leaf* nextLeaf = this->insert((*(this->locations)).at(i), this->tree_head, true);
+		//print the nodes as they're being inserted so I can see randomness.
+		//console() << (*(this->locations)).at(i)->identifier << ","<< (*(this->locations)).at(i)->x << ","<< (*(this->locations)).at(i)->y << endl;
 
-			//Allocate space for the new Leaf's members
+		Leaf* nextLeaf = this->insert((*(this->locations)).at(i), this->tree_head, true);
 
-			//may be allocating this space incorrectly.
-			//check to see if i can do it in the insert method so that the 
-			//children can be assigned to null to signify ends of tree
-			Leaf* leftChild = new Leaf;
-			Leaf* rightChild = new Leaf;
-			Entry* data = new Entry;
+		//Allocate space for the new Leaf's members
 
-			nextLeaf->leftChild = leftChild;
-			nextLeaf->rightChild = rightChild;
-			nextLeaf->data = data;
+		//may be allocating this space incorrectly.
+		//check to see if i can do it in the insert method so that the 
+		//children can be assigned to null to signify ends of tree
+		nextLeaf->data = (*(this->locations)).at(i);
+		nextLeaf->leftChild = new Leaf();
+		nextLeaf->rightChild = new Leaf();
+		
 
-		}
 	}
 
 }
 
 Leaf* marcusrmStarbucks :: insert(Entry* c, Leaf* head, bool xlevel){
 
-	if(head == NULL)
+	if(head->data == NULL)
 		return head; //NEED TO ASSIGN NODE AT THIS POINT.
 
 	if(xlevel){
-		double difference = abs(head->data->x - c->x);
-
-		if(difference > 0) 
+	
+		if(c->x > head->data->x) 
 			insert(c, head->rightChild, !xlevel);
 		else
 			insert(c, head->leftChild, !xlevel);
 	}
 	else{
-		double difference = abs(head->data->y - c->y);
 
-		if(difference > 0) 
+		if(c->y > head->data->y) 
 			insert(c, head->rightChild, !xlevel);
 		else
 			insert(c, head->leftChild, !xlevel);
 
 	}
 	
+
+}
+
+void marcusrmStarbucks :: printInOrder(Leaf* head){
+	
+	if(head->data == NULL)
+		return;
+	printInOrder(head->leftChild);
+	console() << head->data->identifier << ","<< head->data->x << ","<< head->data->y << endl;
+	printInOrder(head->rightChild);
+
 
 }
 
@@ -150,52 +157,72 @@ Entry* marcusrmStarbucks :: getNearest(double x, double y){
 
 Leaf* marcusrmStarbucks :: search(double x, double y, Leaf* head, bool xlevel){
 
-	if(head->leftChild == NULL || head->rightChild == NULL)
-		return head;
+	//this is probably a bad return case.
+	if(head->data == NULL)
+		return NULL;
 
 	double distance = sqrt((head->data->x - x)*(head->data->x - x) + (head->data->y - y)*(head->data->y - y));
 
 	if(distance < MARGIN)
 		return head;
 
-	Leaf* candidate;
-
+	Leaf* candidate = NULL;
+//~~~~~~ X LEVEL ~~~~~~~~//
 	if(xlevel){
-		if(x > head->data->x){
+		if(x > head->data->x){//~~~~~~ RIGHT SIDE ~~~~~~~~//
 			candidate = search(x, y, head->rightChild, !xlevel);
 
-			distance = sqrt((candidate->data->x - x)*(candidate->data->x - x) + (candidate->data->y - y)*(candidate->data->y - y));
+			if(candidate == NULL)
+				candidate = head;
+			/*else{
+				distance = sqrt((candidate->data->x - x)*(candidate->data->x - x) + (candidate->data->y - y)*(candidate->data->y - y));
 
-			if(distance < abs(candidate->data->x - x))
-				candidate = search(x, y, head->leftChild, !xlevel);
+				if(distance > abs(candidate->data->x - x))
+					candidate = search(x, y, head->leftChild, !xlevel);
+			}*/
 		}
-		else{
+		else{//~~~~~~ LEFT SIDE ~~~~~~~~//
 			candidate = search(x, y, head->leftChild, !xlevel);
+			
+			if(candidate == NULL)
+				candidate = head;
+			/*else{
+				distance = sqrt((candidate->data->x - x)*(candidate->data->x - x) + (candidate->data->y - y)*(candidate->data->y - y));
 
-			distance = sqrt((candidate->data->x - x)*(candidate->data->x - x) + (candidate->data->y - y)*(candidate->data->y - y));
-
-			if(distance < abs(candidate->data->x - x))
-				candidate = search(x, y, head->rightChild, !xlevel);
+				if(distance > abs(candidate->data->x - x))
+					candidate = search(x, y, head->rightChild, !xlevel);
+			}*/
 		}
 	}
+//~~~~~~ Y LEVEL ~~~~~~~~//
 	else{
-		if(y > head->data->y){
+		if(y > head->data->y){//~~~~~~ RIGHT SIDE ~~~~~~~~//
 			candidate = search(x, y, head->rightChild, !xlevel);
+						
+			if(candidate == NULL)
+				candidate = head;
+			/*else{
+				distance = sqrt((candidate->data->x - x)*(candidate->data->x - x) + (candidate->data->y - y)*(candidate->data->y - y));
 
-			distance = sqrt((candidate->data->x - x)*(candidate->data->x - x) + (candidate->data->y - y)*(candidate->data->y - y));
-
-			if(distance < abs(candidate->data->y - y))
-				candidate = search(x, y, head->leftChild, !xlevel);
+				if(distance > abs(candidate->data->y - y))
+					candidate = search(x, y, head->leftChild, !xlevel);
+			}*/
 		}
-		else{
+		else{//~~~~~~ LEFT SIDE ~~~~~~~~//
 			candidate = search(x, y, head->leftChild, !xlevel);
+						
+			if(candidate == NULL)
+				candidate = head;
+			/*else{
+				distance = sqrt((candidate->data->x - x)*(candidate->data->x - x) + (candidate->data->y - y)*(candidate->data->y - y));
 
-			distance = sqrt((candidate->data->x - x)*(candidate->data->x - x) + (candidate->data->y - y)*(candidate->data->y - y));
-
-			if(distance < abs(candidate->data->y - y))
-				candidate = search(x, y, head->rightChild, !xlevel);
+				if(distance > abs(candidate->data->y - y))
+					candidate = search(x, y, head->rightChild, !xlevel);
+			}*/
 		}
 	}
+	
+	return candidate;
 
 }
 
