@@ -37,8 +37,8 @@ void HW04App::setup()
 {
 	srand ( unsigned ( time (NULL) ) );
 	
-	x = 0.5;
-	y = 0.5;
+	x = 0.6375931031084;
+	y = 0.9758290208923;
 
 	myStarbucks = new marcusrmStarbucks();
 
@@ -62,39 +62,48 @@ void HW04App::setup()
 		<< "x: " << slowSolution->x << endl << "y: " << slowSolution->y << endl;
 	console() << "Fast solution: " << endl << "City: " << fastSolution->identifier << endl
 		<< "x: " << fastSolution->x << endl << "y: " << fastSolution->y << endl;
-
 	*/
-
+	
+	
 	//~~~~~~~~~~~~~~ACCURACY TESTING CODE~~~~~~~~~~~~~~//
 	
-	for(int i = 0; i < 10; i++){
+	int n = 10000;
+	int correct = 0;
+
+	for(int i = 0; i < n; i++){
 		x = ((double)rand())/RAND_MAX;
 		y = ((double)rand())/RAND_MAX;
 
-		console() << "x,y: " << x << "," << y << endl;
-
-		slowSolution = myStarbucks->getNearestSlow(x,y);
+		//console() << "x,y: " << x << "," << y << endl;
+		
 		fastSolution = myStarbucks->getNearest(x,y);
+		slowSolution = myStarbucks->getNearestSlow(x,y);
 
-		console() << "Slow solution: " << endl << "City: " << slowSolution->identifier << endl
-			<< "x: " << slowSolution->x << endl << "y: " << slowSolution->y << endl;
-		console() << "Fast solution: " << endl << "City: " << fastSolution->identifier << endl
-			<< "x: " << fastSolution->x << endl << "y: " << fastSolution->y << endl;
+		//console() << "Fast solution: " << endl << "City: " << fastSolution->identifier << endl
+		//	<< "x: " << fastSolution->x << endl << "y: " << fastSolution->y << endl;
+		//console() << "Slow solution: " << endl << "City: " << slowSolution->identifier << endl
+		//	<< "x: " << slowSolution->x << endl << "y: " << slowSolution->y << endl;
+
+		if(fastSolution->x == slowSolution->x && fastSolution->y == slowSolution->y)
+			correct++;
+
 	}
+
+	console() << "Correct: " << correct*100.0/n << "%" << endl;
 	
 
 	/*	
 	//~~~~~~~~~~~~~~TIMING TESTING CODE~~~~~~~~~~~~~~//
 	//Thanks to Dr. Brinkman for showing us these time-telling features in boost.
 	boost::posix_time::ptime startSlow = boost::posix_time::microsec_clock::local_time();
-	for(int i = 0; i < 10000; i++){
+	for(int i = 0; i < 1; i++){
 		slowSolution = myStarbucks->getNearestSlow(x,y);
 	}
 	boost::posix_time::ptime endSlow = boost::posix_time::microsec_clock::local_time();
 	boost::posix_time::time_duration msDiffSlow = endSlow - startSlow;
 
 	boost::posix_time::ptime startFast = boost::posix_time::microsec_clock::local_time();
-	for(int i = 0; i < 10000; i++){
+	for(int i = 0; i < 100000; i++){
 		fastSolution = myStarbucks->getNearest(x,y);
 	}
 	boost::posix_time::ptime endFast = boost::posix_time::microsec_clock::local_time();
