@@ -70,9 +70,11 @@ void HW04App::setup()
 	
 	
 	//~~~~~~~~~~~~~~ACCURACY TESTING CODE~~~~~~~~~~~~~~//
-	/*
+	
 	int n = 10000;
 	int correct = 0;
+	double fastDistance;
+	double slowDistance;
 
 	for(int i = 0; i < n; i++){
 		x = ((double)rand())/RAND_MAX;
@@ -88,13 +90,16 @@ void HW04App::setup()
 		//console() << "Slow solution: " << endl << "City: " << slowSolution->identifier << endl
 		//	<< "x: " << slowSolution->x << endl << "y: " << slowSolution->y << endl;
 
-		if(fastSolution->x == slowSolution->x && fastSolution->y == slowSolution->y)
+		fastDistance = sqrt((fastSolution->x - x)*(fastSolution->x - x) + (fastSolution->y - y)*(fastSolution->y - y));
+		slowDistance = sqrt((slowSolution->x - x)*(slowSolution->x - x) + (slowSolution->y - y)*(slowSolution->y - y));
+
+		if(fastDistance <= slowDistance*1.25)
 			correct++;
 
 	}
 
 	console() << "Correct: " << correct*100.0/n << "%" << endl;
-	*/
+	
 
 	/*	
 	//~~~~~~~~~~~~~~TIMING TESTING CODE~~~~~~~~~~~~~~//
@@ -136,7 +141,7 @@ void HW04App::draw()
 {
 
 
-/*
+	/*
 	gl::color(0.5,0.5,0.5);
 	for(int i = 0; i < (*(myStarbucks->locations)).size(); i++){
 		Vec2f coordinate = Vec2f(((*(myStarbucks->locations)).at(i))->x * 700, 700 - (((*(myStarbucks->locations)).at(i))->y * 700));
@@ -147,6 +152,8 @@ void HW04App::draw()
 	//uint8_t* pixels = (*mySurface_).getData();
 	//int offset;
 
+	/*
+	//~~~~~~~~~~~~~~~~~~DRAW COVERAGE MAP~~~~~~~~~~~~~~~~~~//
 	for(int i = 0; i < kAppWidth; i++){
 		for(int j = 0; j < kAppHeight; j++){
 		//	offset = 3*(i + j*kAppWidth);
@@ -159,18 +166,15 @@ void HW04App::draw()
 		//	else
 		//		pixels[offset] = 0;
 			if(fastSolution->x != slowSolution->x || fastSolution->y != slowSolution->y){
-				Vec2f coordinate = Vec2f(fastSolution->x * 700, 700 - (fastSolution->y * 700));
+				Vec2f coordinate = Vec2f(i,700-j);
 				gl::color(1,0,0);
 				gl::drawSolidCircle(coordinate, 1, 0);
 			}
-			else
-				gl::color(0,0,0);
-
 
 		}
 	}
-
-
+	*/
+	
 
 /*
 	//~~~~~~~~~WHEN I INCLUDE THIS PART, MY FAST SOLUTION BEGINS TO GET LESS ACCURATE, THERE MUST BE SOME

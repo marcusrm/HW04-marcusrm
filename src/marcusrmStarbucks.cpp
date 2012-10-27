@@ -171,7 +171,7 @@ Leaf* marcusrmStarbucks :: search(double x, double y, Leaf* head, bool xlevel){
 		if(x > head->data->x){//~~~~~~ RIGHT SIDE ~~~~~~~~//
 			candidate = search(x, y, head->rightChild, !xlevel);
 
-			if(candidate == NULL){
+			if(candidate == NULL){//~~~~~~CHILD NULL~~~~~~//
 				candidate = head;
 				Leaf* twinCandidate = search(x, y, head->leftChild, !xlevel);
 
@@ -182,7 +182,7 @@ Leaf* marcusrmStarbucks :: search(double x, double y, Leaf* head, bool xlevel){
 						candidate = twinCandidate;
 				}
 			}
-			else{
+			else{//~~~~~~CHILD NOT NULL~~~~~~//
 				double candidateDistance = sqrt((candidate->data->x - x)*(candidate->data->x - x) + (candidate->data->y - y)*(candidate->data->y - y));
 
 				if(parentDistance < candidateDistance){
@@ -197,7 +197,7 @@ Leaf* marcusrmStarbucks :: search(double x, double y, Leaf* head, bool xlevel){
 					}
 					return candidate;
 				}
-				if(candidateDistance > abs(head->data->x - x)){
+				if(candidateDistance > abs(head->data->x - x)){//~~~~~~CANDIDATE GREATER THAN BOUNDARY~~~~~~//
 					Leaf* twinCandidate = search(x, y, head->leftChild, !xlevel);
 
 					if(twinCandidate != NULL){
@@ -353,7 +353,7 @@ Entry* marcusrmStarbucks :: getNearestSlow(double x, double y){
 
 	int size = (*(this->locations)).size();
 	double distance = 0 , minDistance = 10; // start minimum distance at 10, which is more than the maximum possible distance
-	Entry* minEntry = (*(this->locations)).at(0);
+	Entry* minEntry = NULL;
 
 	for(int i = 0; i < size; i++){
 
