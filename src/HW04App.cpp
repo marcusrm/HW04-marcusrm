@@ -15,6 +15,7 @@ class HW04App : public AppBasic {
 	void update();
 	void draw();
 	void prepareSettings(Settings* settings);
+	Surface* mySurface_; //The Surface object whose pixel array we will modify
 
 	//Width and height of the screen
 	static const int kAppWidth=700;
@@ -26,6 +27,7 @@ class HW04App : public AppBasic {
 	Entry* fastSolution;
 	double x;
 	double y;
+
 };
 
 void HW04App::prepareSettings(Settings* settings){
@@ -35,6 +37,8 @@ void HW04App::prepareSettings(Settings* settings){
 
 void HW04App::setup()
 {
+	mySurface_ = new Surface(kTextureSize,kTextureSize,false);
+
 	srand ( unsigned ( time (NULL) ) );
 	
 	x = 0.6375931031084;
@@ -92,7 +96,7 @@ void HW04App::setup()
 	console() << "Correct: " << correct*100.0/n << "%" << endl;
 	*/
 
-		
+	/*	
 	//~~~~~~~~~~~~~~TIMING TESTING CODE~~~~~~~~~~~~~~//
 	//Thanks to Dr. Brinkman for showing us these time-telling features in boost.
 	boost::posix_time::ptime startSlow = boost::posix_time::microsec_clock::local_time();
@@ -113,7 +117,8 @@ void HW04App::setup()
 		<< "x: " << slowSolution->x << endl << "y: " << slowSolution->y << endl;
 	console() << "Fast solution: " << msDiffFast << endl << "City: " << fastSolution->identifier << endl
 		<< "x: " << fastSolution->x << endl << "y: " << fastSolution->y << endl;
-	
+	*/
+
 
 }
 
@@ -123,6 +128,8 @@ void HW04App::mouseDown( MouseEvent event )
 
 void HW04App::update()
 {
+
+
 }
 
 void HW04App::draw()
@@ -136,6 +143,34 @@ void HW04App::draw()
 		gl::drawSolidCircle(coordinate, 2, 0);
 	}
 	*/
+
+	//uint8_t* pixels = (*mySurface_).getData();
+	//int offset;
+
+	for(int i = 0; i < kAppWidth; i++){
+		for(int j = 0; j < kAppHeight; j++){
+		//	offset = 3*(i + j*kAppWidth);
+
+			fastSolution = myStarbucks->getNearest(((double)i)/kAppWidth, ((double)j)/kAppHeight);
+			slowSolution = myStarbucks->getNearestSlow(((double)i)/kAppWidth, ((double)j)/kAppHeight);
+				
+		//	if(fastSolution->x == slowSolution->x && fastSolution->y == slowSolution->y)
+		//		pixels[offset] = 255;
+		//	else
+		//		pixels[offset] = 0;
+			if(fastSolution->x != slowSolution->x || fastSolution->y != slowSolution->y){
+				Vec2f coordinate = Vec2f(fastSolution->x * 700, 700 - (fastSolution->y * 700));
+				gl::color(1,0,0);
+				gl::drawSolidCircle(coordinate, 1, 0);
+			}
+			else
+				gl::color(0,0,0);
+
+
+		}
+	}
+
+
 
 /*
 	//~~~~~~~~~WHEN I INCLUDE THIS PART, MY FAST SOLUTION BEGINS TO GET LESS ACCURATE, THERE MUST BE SOME
