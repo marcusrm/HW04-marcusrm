@@ -2,51 +2,34 @@
 #include "marcusrmStarbucks.h"
 #include "cinder/app/AppBasic.h"
 #include "cinder/gl/gl.h"
+#include <boost/accumulators/accumulators.hpp>
+#include <boost/accumulators/statistics/stats.hpp>
+#include <boost/accumulators/statistics/median.hpp>
 
 using namespace ci;
 using namespace ci::app;
 using namespace std;
+using namespace boost::accumulators;
 
 marcusrmStarbucks :: marcusrmStarbucks(){
-	this->locations = new vector<Entry*>();
-	
-	//need to randomize list first
+	//set up tree head
 	this->tree_head = new Leaf();
 	this->tree_head->data = new Entry;
 	this->tree_head->leftChild = new Leaf();
 	this->tree_head->rightChild = new Leaf();
 
+	//don't want to make a list of entries yet. we don't know the data size
+	//this->locations = NULL;
 }
 
 
 marcusrmStarbucks :: ~marcusrmStarbucks(){
 	
-	burnTree(this->tree_head);
-	this->tree_head = NULL;
-}
-
-void marcusrmStarbucks :: burnTree(Leaf* tree_head){
-
-	//recursive stop case
-	if(tree_head->data == NULL){
-		return;
-	}
-	
-	//recursive call delete on children
-	burnTree(tree_head->leftChild);
-	burnTree(tree_head->rightChild);
-	
-	//delete information on current node:
-	delete &(tree_head->data->identifier);
-	delete &(tree_head->data->x);
-	delete &(tree_head->data->y);
-	delete (tree_head->data);
-	delete (tree_head);
+	delete this->tree_head;
 	tree_head = NULL;
-
 }
 
-void marcusrmStarbucks :: importData(string fileName){
+int marcusrmStarbucks :: importData(Entry* importedData, string fileName){
 
 	try{
 		ifstream fid (fileName, ifstream::in);
@@ -66,7 +49,7 @@ void marcusrmStarbucks :: importData(string fileName){
 			fid.getline(buffer,256,'\r');
 			temp->y  = atof(buffer); //NOTE: THIS MIGHT BE GIVING ME TOO MANY SIG FIGS
 			
-			(*(this->locations)).push_back(temp);
+			importedData[index] = *temp;
 
 			//checking output for correctness:
 			//console() << (locations->back())->identifier << ","<< (locations->back())->x << ","<< (locations->back())->y << std::endl ;
@@ -74,37 +57,89 @@ void marcusrmStarbucks :: importData(string fileName){
 			index++;
 		}
 
+		//this->n = index;
+
 		fid.close();
+
+		return index;
 
 	}catch(ios_base::failure){
 
 		cout << "Error Reading File\n";
-		return;
+		return NULL;
 
 	}
 }
 
-void marcusrmStarbucks :: build(Entry* c, int n){
+double findMedian(Entry* c, int n, xlevel){
+	double median;
+	accumulator_set<double, stats<tag::median>> accX;
+	accumulator_set<double, stats<tag::median>> accY;
 
-	n = (*(this->locations)).size();
+
+	for(int i = 0; i < n; i++){
+
+		if(xlevel)
+			accX(c[i].x);
+		else
+			accY(c[i].y);
+
+	}
+	if(xlevel)
+		double median = median(accX);
+	else
+		double median = median(accY);
+
+	for(int i = 0; i < n; i++){
+
+		if(xlevel)
+			accX(c[i].x);
+		else
+			accY(c[i].y);
+
+	}
+	
+}
+
+void marcusrmStarbucks :: build(Entry* c, int n, xlevel){
+	bool xlevel = true;
+	double median;
+	accumulator_set<double, stats<tag::median>> accX;
+	accumulator_set<double, stats<tag::median>> accY;
+
+
+	for(int i = 0; i < n; i++){
+
+		if(xlevel)
+			accX(c[i].x);
+		else
+			accY(c[i].y);
+
+	}
+	if(xlevel)
+		double median = median(accX);
+	else
+		double median = median(accY);
+
+
+
+
+	//shuffle the locations array
+	this->shuffle(c,n);
 
 	//set the head of the tree to the values of the first node:
-	this->tree_head->data = (*(this->locations)).at(0);
+	this->tree_head->data = &c[0];
 
 	//now build the rest of the tree:
 	for(int i = 1; i < n; i++){
 			
 		//print the nodes as they're being inserted so I can see randomness.
-		//console() << (*(this->locations)).at(i)->identifier << ","<< (*(this->locations)).at(i)->x << ","<< (*(this->locations)).at(i)->y << endl;
+		//console() << c[i].identifier << ","<< c[i].x << ","<< c[i].y << endl;
 
-		Leaf* nextLeaf = this->insert((*(this->locations)).at(i), this->tree_head, true);
+		Leaf* nextLeaf = this->insert(&c[i], this->tree_head, true);
 
-		//Allocate space for the new Leaf's members
-
-		//may be allocating this space incorrectly.
-		//check to see if i can do it in the insert method so that the 
-		//children can be assigned to null to signify ends of tree
-		nextLeaf->data = (*(this->locations)).at(i);
+		//Allocate space for the new Leaf's members & make sure tree is terminated with NULL leaves
+		nextLeaf->data = &c[i];
 		nextLeaf->leftChild = new Leaf();
 		nextLeaf->rightChild = new Leaf();
 		
@@ -113,28 +148,45 @@ void marcusrmStarbucks :: build(Entry* c, int n){
 
 }
 
+
+void marcusrmStarbucks::shuffle(Entry* c, int n){
+       
+	srand ( unsigned ( time (NULL) ) );
+    int random;
+
+	//swap each node with a random node in the array
+    if(n>1){
+            for(int i = 0; i < n; ++i){
+                    random = rand() % n;
+                    Entry temp = c[random];
+                    c[random] = c[i];
+                    c[i] = temp;
+            }
+    }
+}
+
 Leaf* marcusrmStarbucks :: insert(Entry* c, Leaf* head, bool xlevel){
 
 	if(head->data == NULL)
-		return head; //NEED TO ASSIGN NODE AT THIS POINT.
+		return head; 
 
 	if(xlevel){
 	
 		if(c->x > head->data->x) 
-			insert(c, head->rightChild, !xlevel);
+			return insert(c, head->rightChild, !xlevel);
 		else
-			insert(c, head->leftChild, !xlevel);
+			return insert(c, head->leftChild, !xlevel);
 	}
 	else{
 
 		if(c->y > head->data->y) 
-			insert(c, head->rightChild, !xlevel);
+			return insert(c, head->rightChild, !xlevel);
 		else
-			insert(c, head->leftChild, !xlevel);
+			return insert(c, head->leftChild, !xlevel);
 
 	}
 	
-
+	
 }
 
 void marcusrmStarbucks :: printInOrder(Leaf* head){
@@ -142,7 +194,7 @@ void marcusrmStarbucks :: printInOrder(Leaf* head){
 	if(head->data == NULL)
 		return;
 	printInOrder(head->leftChild);
-	console() << head->data->identifier << ","<< head->data->x << ","<< head->data->y << endl;
+	console() << head->data->identifier << "," << head->data->x << "," << head->data->y << endl;
 	printInOrder(head->rightChild);
 
 
@@ -155,6 +207,7 @@ Entry* marcusrmStarbucks :: getNearest(double x, double y){
 	return solution->data;
 }
 
+
 Leaf* marcusrmStarbucks :: search(double x, double y, Leaf* head, bool xlevel){
 
 	if(head->data == NULL)
@@ -165,183 +218,84 @@ Leaf* marcusrmStarbucks :: search(double x, double y, Leaf* head, bool xlevel){
 	if(parentDistance < MARGIN)
 		return head;
 
+	bool rightSide = false;
 	Leaf* candidate = NULL;
-//~~~~~~ X LEVEL ~~~~~~~~//
+	Leaf* otherPath = NULL;
+
+	
 	if(xlevel){
-		if(x > head->data->x){//~~~~~~ RIGHT SIDE ~~~~~~~~//
+		if(x > head->data->x){
 			candidate = search(x, y, head->rightChild, !xlevel);
-
-			if(candidate == NULL){//~~~~~~CHILD NULL~~~~~~//
-				candidate = head;
-				Leaf* twinCandidate = search(x, y, head->leftChild, !xlevel);
-
-				if(twinCandidate != NULL){
-					double twinDistance = sqrt((twinCandidate->data->x - x)*(twinCandidate->data->x - x) + (twinCandidate->data->y - y)*(twinCandidate->data->y - y));
-
-					if(twinDistance < parentDistance)
-						candidate = twinCandidate;
-				}
-			}
-			else{//~~~~~~CHILD NOT NULL~~~~~~//
-				double candidateDistance = sqrt((candidate->data->x - x)*(candidate->data->x - x) + (candidate->data->y - y)*(candidate->data->y - y));
-
-				if(parentDistance < candidateDistance){
-					candidate = head;
-					Leaf* twinCandidate = search(x, y, head->leftChild, !xlevel);
-
-					if(twinCandidate != NULL){
-						double twinDistance = sqrt((twinCandidate->data->x - x)*(twinCandidate->data->x - x) + (twinCandidate->data->y - y)*(twinCandidate->data->y - y));
-
-						if(twinDistance < parentDistance)
-							candidate = twinCandidate;
-					}
-					return candidate;
-				}
-				if(candidateDistance > abs(head->data->x - x)){//~~~~~~CANDIDATE GREATER THAN BOUNDARY~~~~~~//
-					Leaf* twinCandidate = search(x, y, head->leftChild, !xlevel);
-
-					if(twinCandidate != NULL){
-						double twinDistance = sqrt((twinCandidate->data->x - x)*(twinCandidate->data->x - x) + (twinCandidate->data->y - y)*(twinCandidate->data->y - y));
-
-						if(twinDistance < candidateDistance)
-							candidate = twinCandidate;
-					}
-				}
-			}
-		}
-		else{//~~~~~~ LEFT SIDE ~~~~~~~~//
+			otherPath = head->leftChild;
+		}else{
 			candidate = search(x, y, head->leftChild, !xlevel);
-			
-			if(candidate == NULL){
-				candidate = head;
-				Leaf* twinCandidate = search(x, y, head->rightChild, !xlevel);
-
-				if(twinCandidate != NULL){
-					double twinDistance = sqrt((twinCandidate->data->x - x)*(twinCandidate->data->x - x) + (twinCandidate->data->y - y)*(twinCandidate->data->y - y));
-
-					if(twinDistance < parentDistance)
-						candidate = twinCandidate;
-				}
-			}
-			else{
-				double candidateDistance = sqrt((candidate->data->x - x)*(candidate->data->x - x) + (candidate->data->y - y)*(candidate->data->y - y));
-				
-				if(parentDistance < candidateDistance){
-					candidate = head;
-					Leaf* twinCandidate = search(x, y, head->leftChild, !xlevel);
-
-					if(twinCandidate != NULL){
-						double twinDistance = sqrt((twinCandidate->data->x - x)*(twinCandidate->data->x - x) + (twinCandidate->data->y - y)*(twinCandidate->data->y - y));
-
-						if(twinDistance < parentDistance)
-							candidate = twinCandidate;
-					}
-					return candidate;
-				}
-
-				if(candidateDistance > abs(head->data->x - x)){
-					Leaf* twinCandidate = search(x, y, head->rightChild, !xlevel);
-					
-					if(twinCandidate != NULL){
-						double twinDistance = sqrt((twinCandidate->data->x - x)*(twinCandidate->data->x - x) + (twinCandidate->data->y - y)*(twinCandidate->data->y - y));
-
-						if(twinDistance < candidateDistance)
-							candidate = twinCandidate;
-					}
-				}
-			}
+			otherPath = head->rightChild;
+		}
+	}else{
+		if(y > head->data->y){
+			candidate = search(x, y, head->rightChild, !xlevel);
+			otherPath = head->leftChild;
+		}else{
+			candidate = search(x, y, head->leftChild, !xlevel);
+			otherPath = head->rightChild;
 		}
 	}
-//~~~~~~ Y LEVEL ~~~~~~~~//
-	else{
-		if(y > head->data->y){//~~~~~~ RIGHT SIDE ~~~~~~~~//
-			candidate = search(x, y, head->rightChild, !xlevel);
-						
-			if(candidate == NULL){
-				candidate = head;
-				Leaf* twinCandidate = search(x, y, head->leftChild, !xlevel);
 
-				if(twinCandidate != NULL){
-					double twinDistance = sqrt((twinCandidate->data->x - x)*(twinCandidate->data->x - x) + (twinCandidate->data->y - y)*(twinCandidate->data->y - y));
+	if(candidate == NULL){//~~~~~~CANDIDATE NULL~~~~~~//
+		candidate = head;
+		Leaf* twinCandidate = search(x, y, otherPath, !xlevel);
 
-					if(twinDistance < parentDistance)
-						candidate = twinCandidate;
-				}
-			}
-			else{
-				double candidateDistance = sqrt((candidate->data->x - x)*(candidate->data->x - x) + (candidate->data->y - y)*(candidate->data->y - y));
-				
-				if(parentDistance < candidateDistance){
-					candidate = head;
-					Leaf* twinCandidate = search(x, y, head->leftChild, !xlevel);
+		if(twinCandidate != NULL){
+			double twinDistance = sqrt((twinCandidate->data->x - x)*(twinCandidate->data->x - x) 
+				+ (twinCandidate->data->y - y)*(twinCandidate->data->y - y));
 
-					if(twinCandidate != NULL){
-						double twinDistance = sqrt((twinCandidate->data->x - x)*(twinCandidate->data->x - x) + (twinCandidate->data->y - y)*(twinCandidate->data->y - y));
+			if(twinDistance < parentDistance)
+				candidate = twinCandidate;
+		}
+	}
+	else{//~~~~~~CANDIDATE NOT NULL~~~~~~//
+		double candidateDistance = sqrt((candidate->data->x - x)*(candidate->data->x - x) 
+					+ (candidate->data->y - y)*(candidate->data->y - y));
 
-						if(twinDistance < parentDistance)
-							candidate = twinCandidate;
-					}
-					return candidate;
-				}
+		if(parentDistance < candidateDistance){//~~~~~~~~~~~PARENT BETTER THAN CHILD~~~~~~~~~~~~~~//
+			candidate = head;
+			Leaf* twinCandidate = search(x, y, otherPath, !xlevel);
 
-				if(candidateDistance > abs(head->data->y - y)){
-					Leaf* twinCandidate = search(x, y, head->leftChild, !xlevel);
-					
-					if(twinCandidate != NULL){
-						double twinDistance = sqrt((twinCandidate->data->x - x)*(twinCandidate->data->x - x) + (twinCandidate->data->y - y)*(twinCandidate->data->y - y));
+			if(twinCandidate != NULL){
+				double twinDistance = sqrt((twinCandidate->data->x - x)*(twinCandidate->data->x - x) 
+					+ (twinCandidate->data->y - y)*(twinCandidate->data->y - y));
 
-						if(twinDistance < candidateDistance)
-							candidate = twinCandidate;
-					}
-				}
+				if(twinDistance < parentDistance)
+					candidate = twinCandidate;
 			}
 		}
-		else{//~~~~~~ LEFT SIDE ~~~~~~~~//
-			candidate = search(x, y, head->leftChild, !xlevel);
-						
-			if(candidate == NULL){
-				candidate = head;
-				Leaf* twinCandidate = search(x, y, head->rightChild, !xlevel);
+		else if(xlevel && candidateDistance > abs(head->data->x - x)){//~~~~~~CANDIDATE GREATER THAN BOUNDARY XLEVEL~~~~~~//
+			Leaf* twinCandidate = search(x, y, otherPath, !xlevel);
 
-				if(twinCandidate != NULL){
-					double twinDistance = sqrt((twinCandidate->data->x - x)*(twinCandidate->data->x - x) + (twinCandidate->data->y - y)*(twinCandidate->data->y - y));
+			if(twinCandidate != NULL){//~~~~~~CHECK TWIN~~~~~~//
+				double twinDistance = sqrt((twinCandidate->data->x - x)*(twinCandidate->data->x - x) 
+					+ (twinCandidate->data->y - y)*(twinCandidate->data->y - y));
 
-					if(twinDistance < parentDistance)
-						candidate = twinCandidate;
-				}
-			}
-			else{
-				double candidateDistance = sqrt((candidate->data->x - x)*(candidate->data->x - x) + (candidate->data->y - y)*(candidate->data->y - y));
-				
-				if(parentDistance < candidateDistance){
-					candidate = head;
-					Leaf* twinCandidate = search(x, y, head->leftChild, !xlevel);
-
-					if(twinCandidate != NULL){
-						double twinDistance = sqrt((twinCandidate->data->x - x)*(twinCandidate->data->x - x) + (twinCandidate->data->y - y)*(twinCandidate->data->y - y));
-
-						if(twinDistance < parentDistance)
-							candidate = twinCandidate;
-					}
-					return candidate;
-				}
-
-				if(candidateDistance > abs(head->data->y - y)){
-					Leaf* twinCandidate = search(x, y, head->rightChild, !xlevel);
-					
-					if(twinCandidate != NULL){
-						double twinDistance = sqrt((twinCandidate->data->x - x)*(twinCandidate->data->x - x) + (twinCandidate->data->y - y)*(twinCandidate->data->y - y));
-
-						if(twinDistance < candidateDistance)
-							candidate = twinCandidate;
-					}
-				}
+				if(twinDistance < candidateDistance)
+					candidate = twinCandidate;
 			}
 		}
+		else if(!xlevel && candidateDistance > abs(head->data->y - y)){//~~~~~~CANDIDATE GREATER THAN BOUNDARY YLEVEL~~~~~~//
+			Leaf* twinCandidate = search(x, y, otherPath, !xlevel);
+
+			if(twinCandidate != NULL){//~~~~~~CHECK TWIN~~~~~~//
+				double twinDistance = sqrt((twinCandidate->data->x - x)*(twinCandidate->data->x - x) 
+					+ (twinCandidate->data->y - y)*(twinCandidate->data->y - y));
+
+				if(twinDistance < candidateDistance)
+					candidate = twinCandidate;
+			}
+		}
+
 	}
 	
 	return candidate;
-
+	
 }
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -349,15 +303,14 @@ Leaf* marcusrmStarbucks :: search(double x, double y, Leaf* head, bool xlevel){
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
-Entry* marcusrmStarbucks :: getNearestSlow(double x, double y){
+Entry* marcusrmStarbucks :: getNearestSlow(Entry* c, int n, double x, double y){
 
-	int size = (*(this->locations)).size();
 	double distance = 0 , minDistance = 10; // start minimum distance at 10, which is more than the maximum possible distance
 	Entry* minEntry = NULL;
 
-	for(int i = 0; i < size; i++){
+	for(int i = 0; i < n; i++){
 
-		Entry* current = (*(this->locations)).at(i);
+		Entry* current = &c[i];
 		distance = sqrt((current->x - x)*(current->x - x) + (current->y - y)*(current->y - y));
 
 		if(distance < minDistance){

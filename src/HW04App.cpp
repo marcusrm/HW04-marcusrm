@@ -23,6 +23,8 @@ class HW04App : public AppBasic {
 	static const int kTextureSize=1024; //Must be the next power of 2 bigger or equal to app dimensions
 
 	marcusrmStarbucks* myStarbucks;
+	Entry* importedData;
+	int importedSize;
 	Entry* slowSolution;
 	Entry* fastSolution;
 	double x;
@@ -38,21 +40,20 @@ void HW04App::prepareSettings(Settings* settings){
 void HW04App::setup()
 {
 	mySurface_ = new Surface(kTextureSize,kTextureSize,false);
-
-	srand ( unsigned ( time (NULL) ) );
 	
+	importedData = new Entry[10000];
+
 	x = 0.6375931031084;
 	y = 0.9758290208923;
 
 	myStarbucks = new marcusrmStarbucks();
 
 	string fileName = "../src/Starbucks_2006.csv";
-	myStarbucks->importData(fileName);
+	importedSize = myStarbucks->importData(importedData, fileName);
 
-	//use built in shuffle function on vector
-	random_shuffle((*(myStarbucks->locations)).begin(), (*(myStarbucks->locations)).end());
+	//console() << (*(importedData + sizeof(Entry)*180))->identifier << endl;
 
-	myStarbucks->build(NULL,NULL);
+	myStarbucks->build(importedData,importedSize);
 	//myStarbucks->printInOrder(myStarbucks->tree_head);
 
 	slowSolution = new Entry;
@@ -68,13 +69,13 @@ void HW04App::setup()
 		<< "x: " << fastSolution->x << endl << "y: " << fastSolution->y << endl;
 	*/
 	
-	
+	/*
 	//~~~~~~~~~~~~~~ACCURACY TESTING CODE~~~~~~~~~~~~~~//
 	
 	int n = 10000;
 	int correct = 0;
-	double fastDistance;
-	double slowDistance;
+	//double fastDistance;
+	//double slowDistance;
 
 	for(int i = 0; i < n; i++){
 		x = ((double)rand())/RAND_MAX;
@@ -83,36 +84,41 @@ void HW04App::setup()
 		//console() << "x,y: " << x << "," << y << endl;
 		
 		fastSolution = myStarbucks->getNearest(x,y);
-		slowSolution = myStarbucks->getNearestSlow(x,y);
+		slowSolution = myStarbucks->getNearestSlow(importedData, importedSize, x,y);
 
 		//console() << "Fast solution: " << endl << "City: " << fastSolution->identifier << endl
 		//	<< "x: " << fastSolution->x << endl << "y: " << fastSolution->y << endl;
 		//console() << "Slow solution: " << endl << "City: " << slowSolution->identifier << endl
 		//	<< "x: " << slowSolution->x << endl << "y: " << slowSolution->y << endl;
 
-		fastDistance = sqrt((fastSolution->x - x)*(fastSolution->x - x) + (fastSolution->y - y)*(fastSolution->y - y));
-		slowDistance = sqrt((slowSolution->x - x)*(slowSolution->x - x) + (slowSolution->y - y)*(slowSolution->y - y));
+		
+		//fastDistance = sqrt((fastSolution->x - x)*(fastSolution->x - x) + (fastSolution->y - y)*(fastSolution->y - y));
+		//slowDistance = sqrt((slowSolution->x - x)*(slowSolution->x - x) + (slowSolution->y - y)*(slowSolution->y - y));
 
-		if(fastDistance <= slowDistance*1.25)
+		//if(fastDistance <= slowDistance*1.25)
+		//	correct++;
+		
+
+		if(fastSolution->x == slowSolution->x && fastSolution->y == slowSolution->y)
 			correct++;
 
 	}
 
 	console() << "Correct: " << correct*100.0/n << "%" << endl;
-	
+	*/
 
-	/*	
+		
 	//~~~~~~~~~~~~~~TIMING TESTING CODE~~~~~~~~~~~~~~//
 	//Thanks to Dr. Brinkman for showing us these time-telling features in boost.
 	boost::posix_time::ptime startSlow = boost::posix_time::microsec_clock::local_time();
-	for(int i = 0; i < 1; i++){
-		slowSolution = myStarbucks->getNearestSlow(x,y);
+	for(int i = 0; i < 100000; i++){
+		slowSolution = myStarbucks->getNearestSlow(importedData, importedSize, x,y);
 	}
 	boost::posix_time::ptime endSlow = boost::posix_time::microsec_clock::local_time();
 	boost::posix_time::time_duration msDiffSlow = endSlow - startSlow;
 
 	boost::posix_time::ptime startFast = boost::posix_time::microsec_clock::local_time();
-	for(int i = 0; i < 10000; i++){
+	for(int i = 0; i < 100000; i++){
 		fastSolution = myStarbucks->getNearest(x,y);
 	}
 	boost::posix_time::ptime endFast = boost::posix_time::microsec_clock::local_time();
@@ -122,8 +128,8 @@ void HW04App::setup()
 		<< "x: " << slowSolution->x << endl << "y: " << slowSolution->y << endl;
 	console() << "Fast solution: " << msDiffFast << endl << "City: " << fastSolution->identifier << endl
 		<< "x: " << fastSolution->x << endl << "y: " << fastSolution->y << endl;
-	*/
-
+	
+	
 
 }
 
@@ -159,7 +165,7 @@ void HW04App::draw()
 		//	offset = 3*(i + j*kAppWidth);
 
 			fastSolution = myStarbucks->getNearest(((double)i)/kAppWidth, ((double)j)/kAppHeight);
-			slowSolution = myStarbucks->getNearestSlow(((double)i)/kAppWidth, ((double)j)/kAppHeight);
+			slowSolution = myStarbucks->getNearestSlow(*importedData, importedSize, ((double)i)/kAppWidth, ((double)j)/kAppHeight);
 				
 		//	if(fastSolution->x == slowSolution->x && fastSolution->y == slowSolution->y)
 		//		pixels[offset] = 255;
