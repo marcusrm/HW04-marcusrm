@@ -69,9 +69,9 @@ void HW04App::setup()
 		<< "x: " << fastSolution->x << endl << "y: " << fastSolution->y << endl;
 	*/
 	
-	/*
-	//~~~~~~~~~~~~~~ACCURACY TESTING CODE~~~~~~~~~~~~~~//
 	
+	//~~~~~~~~~~~~~~ACCURACY TESTING CODE~~~~~~~~~~~~~~//
+	/*
 	int n = 10000;
 	int correct = 0;
 	//double fastDistance;
@@ -107,7 +107,7 @@ void HW04App::setup()
 	console() << "Correct: " << correct*100.0/n << "%" << endl;
 	*/
 
-		
+		/*
 	//~~~~~~~~~~~~~~TIMING TESTING CODE~~~~~~~~~~~~~~//
 	//Thanks to Dr. Brinkman for showing us these time-telling features in boost.
 	boost::posix_time::ptime startSlow = boost::posix_time::microsec_clock::local_time();
@@ -128,7 +128,7 @@ void HW04App::setup()
 		<< "x: " << slowSolution->x << endl << "y: " << slowSolution->y << endl;
 	console() << "Fast solution: " << msDiffFast << endl << "City: " << fastSolution->identifier << endl
 		<< "x: " << fastSolution->x << endl << "y: " << fastSolution->y << endl;
-	
+	*/
 	
 
 }

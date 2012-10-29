@@ -44,12 +44,13 @@ public:
 	//puts the imported data into 'importedData' array, and returns the size of that array
 	int importData(Entry* importedData, string fileName);
 
-
 private:
 	
 	Leaf* insert(Entry* c, Leaf* head, bool xlevel);
+	//void insertMedian(Leaf* head, Entry* c, int n, bool xlevel);
 	Leaf* search(double x, double y, Leaf* head, bool xlevel);
-	void shuffle(Entry* c, int n);
-	static double findMedian(Entry* c, int n, bool xlevel);
+	static void shuffle(Entry* c, int n);
+	//static int findMedian(Entry* c, int n, bool xlevel);
+	
 
 };

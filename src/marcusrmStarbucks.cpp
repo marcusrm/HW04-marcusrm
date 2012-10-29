@@ -2,14 +2,14 @@
 #include "marcusrmStarbucks.h"
 #include "cinder/app/AppBasic.h"
 #include "cinder/gl/gl.h"
-#include <boost/accumulators/accumulators.hpp>
-#include <boost/accumulators/statistics/stats.hpp>
-#include <boost/accumulators/statistics/median.hpp>
+//#include <boost/accumulators/accumulators.hpp>
+//#include <boost/accumulators/statistics/stats.hpp>
+//#include <boost/accumulators/statistics/median.hpp>
 
 using namespace ci;
 using namespace ci::app;
 using namespace std;
-using namespace boost::accumulators;
+//using namespace boost::accumulators;
 
 marcusrmStarbucks :: marcusrmStarbucks(){
 	//set up tree head
@@ -71,58 +71,53 @@ int marcusrmStarbucks :: importData(Entry* importedData, string fileName){
 	}
 }
 
-double findMedian(Entry* c, int n, xlevel){
-	double median;
+/*
+int marcusrmStarbucks::findMedian(Entry* c, int n, bool xlevel){
+	double median = 0;
 	accumulator_set<double, stats<tag::median>> accX;
 	accumulator_set<double, stats<tag::median>> accY;
-
+	int minEntryIndex = -1;
+	double minDifference = 10; // 10 is above highest possible distance;
+	double difference = 0;
 
 	for(int i = 0; i < n; i++){
-
 		if(xlevel)
 			accX(c[i].x);
 		else
 			accY(c[i].y);
-
 	}
+
 	if(xlevel)
-		double median = median(accX);
+		double median = boost::accumulators::median(accX);
 	else
-		double median = median(accY);
+		double median = boost::accumulators::median(accY);
 
 	for(int i = 0; i < n; i++){
 
-		if(xlevel)
-			accX(c[i].x);
-		else
-			accY(c[i].y);
-
+		if(xlevel){
+			difference = abs(c[i].x - median);
+			if(difference < minDifference){
+				minEntryIndex = i;
+				minDifference = difference;
+			}
+		}
+		else{
+			difference = abs(c[i].y - median);
+			if(difference < minDifference){
+				minEntryIndex = i;
+				minDifference = difference;
+			}
+		}
 	}
 	
+	return minEntryIndex;
 }
+*/
 
-void marcusrmStarbucks :: build(Entry* c, int n, xlevel){
-	bool xlevel = true;
-	double median;
-	accumulator_set<double, stats<tag::median>> accX;
-	accumulator_set<double, stats<tag::median>> accY;
+void marcusrmStarbucks :: build(Entry* c, int n){
 
-
-	for(int i = 0; i < n; i++){
-
-		if(xlevel)
-			accX(c[i].x);
-		else
-			accY(c[i].y);
-
-	}
-	if(xlevel)
-		double median = median(accX);
-	else
-		double median = median(accY);
-
-
-
+	
+	//SHUFFLE METHOD
 
 	//shuffle the locations array
 	this->shuffle(c,n);
@@ -145,6 +140,11 @@ void marcusrmStarbucks :: build(Entry* c, int n, xlevel){
 		
 
 	}
+	
+
+	//MEDIAN METHOD
+
+	//insertMedian((this->tree_head), c, n, true);
 
 }
 
@@ -164,6 +164,24 @@ void marcusrmStarbucks::shuffle(Entry* c, int n){
             }
     }
 }
+
+/*
+void marcusrmStarbucks :: insertMedian(Leaf* head, Entry* c, int n, bool xlevel){
+	
+	//if we get down to a dataset of ONE node, then quit.
+	if(n <= 1 || c->identifier == c[n].identifier)
+		return;
+
+	int medianIndex = findMedian(c,n,!xlevel);
+
+	head->data = &c[medianIndex];
+	head->leftChild = new Leaf();
+	head->rightChild = new Leaf();
+	insertMedian(head->leftChild, c, medianIndex, !xlevel);
+	insertMedian(head->rightChild, &(c[medianIndex+1]), n-(medianIndex+1), !xlevel);
+
+}
+*/
 
 Leaf* marcusrmStarbucks :: insert(Entry* c, Leaf* head, bool xlevel){
 
