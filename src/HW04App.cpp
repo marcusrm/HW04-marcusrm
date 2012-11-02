@@ -1,5 +1,6 @@
 #include "cinder/app/AppBasic.h"
 #include "cinder/gl/gl.h"
+#include "cinder/gl/Texture.h"
 #include "marcusrmStarbucks.h"
 #include "boost/date_time/posix_time/posix_time.hpp"
 #include <vector>
@@ -15,6 +16,7 @@ class HW04App : public AppBasic {
 	void update();
 	void draw();
 	void prepareSettings(Settings* settings);
+	void keyDown(KeyEvent event);
 	Surface* mySurface_; //The Surface object whose pixel array we will modify
 
 	//Width and height of the screen
@@ -25,10 +27,12 @@ class HW04App : public AppBasic {
 	marcusrmStarbucks* myStarbucks;
 	Entry* importedData;
 	int importedSize;
-	Entry* slowSolution;
-	Entry* fastSolution;
+	Entry* nearest;
 	double x;
 	double y;
+
+	bool isCoverageOn;
+	bool showNearest;
 
 };
 
@@ -40,11 +44,15 @@ void HW04App::prepareSettings(Settings* settings){
 void HW04App::setup()
 {
 	mySurface_ = new Surface(kTextureSize,kTextureSize,false);
-	
+	//Surface us_map(loadImage( loadResource(RES_BABY) ));
+
 	importedData = new Entry[10000];
 
 	x = 0.6375931031084;
 	y = 0.9758290208923;
+
+	isCoverageOn = false;
+	showNearest = false;
 
 	myStarbucks = new marcusrmStarbucks();
 
@@ -55,9 +63,6 @@ void HW04App::setup()
 
 	myStarbucks->build(importedData,importedSize);
 	//myStarbucks->printInOrder(myStarbucks->tree_head);
-
-	slowSolution = new Entry;
-	fastSolution = new Entry;
 
 	/*
 	slowSolution = myStarbucks->getNearestSlow(x,y);
@@ -135,6 +140,30 @@ void HW04App::setup()
 
 void HW04App::mouseDown( MouseEvent event )
 {
+	if(event.isLeft()){
+		nearest = myStarbucks->getNearest(((double)event.getX())/kAppWidth,(kAppHeight - ((double)event.getY()))/kAppHeight);
+		showNearest = true;
+	}
+	else if (event.isRight()){
+		gl::clear();
+		showNearest = false;
+	}
+}
+
+void HW04App::keyDown( KeyEvent event){
+
+	if(event.getChar() == 'c'){
+		if(!isCoverageOn){
+			myStarbucks->drawCoverage(kAppWidth,kAppHeight,mySurface_);
+			isCoverageOn = !isCoverageOn;
+		}
+		else{
+			gl::clear();
+			myStarbucks->draw(kAppWidth, kAppHeight,myStarbucks->tree_head);
+			isCoverageOn = !isCoverageOn;
+		}
+	}
+
 }
 
 void HW04App::update()
@@ -145,62 +174,20 @@ void HW04App::update()
 
 void HW04App::draw()
 {
+	gl::draw(*mySurface_);
+	myStarbucks->draw(kAppWidth, kAppHeight,myStarbucks->tree_head);
 
+	if(showNearest){
+		if(((int) clock()) % 500 < 250)
+			gl::color(1,1,1);
+		else
+			gl::color(myStarbucks->currentStarbucksColor);
 
-	/*
-	gl::color(0.5,0.5,0.5);
-	for(int i = 0; i < (*(myStarbucks->locations)).size(); i++){
-		Vec2f coordinate = Vec2f(((*(myStarbucks->locations)).at(i))->x * 700, 700 - (((*(myStarbucks->locations)).at(i))->y * 700));
-		gl::drawSolidCircle(coordinate, 2, 0);
+		Vec2f coordinate = Vec2f(nearest->x * kAppWidth, kAppHeight-(nearest->y * kAppHeight));
+		gl::drawSolidCircle(coordinate, 3, 0);
+		
 	}
-	*/
-
-	//uint8_t* pixels = (*mySurface_).getData();
-	//int offset;
-
-	/*
-	//~~~~~~~~~~~~~~~~~~DRAW COVERAGE MAP~~~~~~~~~~~~~~~~~~//
-	for(int i = 0; i < kAppWidth; i++){
-		for(int j = 0; j < kAppHeight; j++){
-		//	offset = 3*(i + j*kAppWidth);
-
-			fastSolution = myStarbucks->getNearest(((double)i)/kAppWidth, ((double)j)/kAppHeight);
-			slowSolution = myStarbucks->getNearestSlow(*importedData, importedSize, ((double)i)/kAppWidth, ((double)j)/kAppHeight);
-				
-		//	if(fastSolution->x == slowSolution->x && fastSolution->y == slowSolution->y)
-		//		pixels[offset] = 255;
-		//	else
-		//		pixels[offset] = 0;
-			if(fastSolution->x != slowSolution->x || fastSolution->y != slowSolution->y){
-				Vec2f coordinate = Vec2f(i,700-j);
-				gl::color(1,0,0);
-				gl::drawSolidCircle(coordinate, 1, 0);
-			}
-
-		}
-	}
-	*/
 	
-
-/*
-	//~~~~~~~~~WHEN I INCLUDE THIS PART, MY FAST SOLUTION BEGINS TO GET LESS ACCURATE, THERE MUST BE SOME
-	//KIND OF OPTIMIZATION GOING ON TO GET THE SOLUTION QUICKLY AND FEED IT TO THE DRAW FUNCTION HERE.
-
-	//slow
-	gl::color(1,0,0);
-	Vec2f coordinate = Vec2f(slowSolution->x * 700, 700 - (slowSolution->y * 700));
-	gl::drawSolidCircle(coordinate, 2, 0);
-
-	//real x y
-	gl::color(0,0,1);
-	coordinate = Vec2f(x * 700, 700 - (y * 700));
-	gl::drawSolidCircle(coordinate, 2, 0);
-
-		//fast
-	gl::color(0,1,0);
-	coordinate = Vec2f(fastSolution->x * 700, 700 - (fastSolution->y * 700));
-	gl::drawSolidCircle(coordinate, 2, 0);
-	*/
 }
 
 CINDER_APP_BASIC( HW04App, RendererGl )

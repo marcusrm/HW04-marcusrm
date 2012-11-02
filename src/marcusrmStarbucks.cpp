@@ -1,7 +1,5 @@
 #pragma once
 #include "marcusrmStarbucks.h"
-#include "cinder/app/AppBasic.h"
-#include "cinder/gl/gl.h"
 //#include <boost/accumulators/accumulators.hpp>
 //#include <boost/accumulators/statistics/stats.hpp>
 //#include <boost/accumulators/statistics/median.hpp>
@@ -221,6 +219,7 @@ void marcusrmStarbucks :: printInOrder(Leaf* head){
 Entry* marcusrmStarbucks :: getNearest(double x, double y){
 
 	Leaf* solution = search(x, y, this->tree_head, true);
+	this->currentStarbucksColor = solution->randColor;
 
 	return solution->data;
 }
@@ -339,4 +338,40 @@ Entry* marcusrmStarbucks :: getNearestSlow(Entry* c, int n, double x, double y){
 	}
 
 	return minEntry;
+}
+
+void marcusrmStarbucks::draw(int kAppWidth, int kAppHeight, Leaf* head){
+	
+	if(head->data == NULL)
+		return;
+
+	Vec2f coordinate = Vec2f(head->data->x * kAppWidth, kAppHeight-(head->data->y * kAppHeight));
+	gl::color(head->randColor);
+	gl::drawSolidCircle(coordinate, 1, 0);
+
+	draw(kAppWidth, kAppHeight, head->rightChild);
+	draw(kAppWidth, kAppHeight, head->leftChild);
+}
+
+void marcusrmStarbucks::drawCoverage(int kAppWidth, int kAppHeight, Surface* mySurface){
+
+	uint8_t* pixels = (*mySurface).getData();
+	int offset;
+
+	//~~~~~~~~~~~~~~~~~~DRAW COVERAGE MAP~~~~~~~~~~~~~~~~~~//
+	for(int i = 0; i < kAppWidth; i++){
+		for(int j = 0; j < kAppHeight; j++){
+			offset = 3*(i + j*kAppWidth);
+
+			//just getNearest to update currentStarbucksColor
+			this->getNearest(((double)i)/kAppWidth, ((double)j)/kAppHeight);
+
+			pixels[offset] = 255;
+			pixels[offset+1] = 255;
+			pixels[offset+2] = 255;
+			
+
+		}
+	}
+
 }

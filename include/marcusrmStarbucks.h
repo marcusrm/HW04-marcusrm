@@ -1,11 +1,17 @@
 
 #pragma once
 #include "Starbucks.h"
+#include "cinder/app/AppBasic.h"
+#include "cinder/gl/gl.h"
 #include <iostream>
 #include <fstream>
 #include <vector>
 
 #define MARGIN 0.00001
+
+using namespace ci;
+using namespace ci::app;
+using namespace std;
 
 //These are the nodes of my kd-tree
 class Leaf { 
@@ -13,15 +19,18 @@ public:
 	Entry* data;
 	Leaf* leftChild;
 	Leaf* rightChild;
+	Color randColor;
 
 	Leaf(){
 		this->data = NULL;
+		this->randColor = Color(((double)rand())/RAND_MAX,((double)rand())/RAND_MAX,((double)rand())/RAND_MAX);
 	}
 	
 	~Leaf(){
 		delete this->data;
 		delete this->leftChild;
 		delete this->rightChild;
+		delete this->randColor;
 		leftChild = NULL;
 		rightChild = NULL;
 	}
@@ -32,6 +41,7 @@ class marcusrmStarbucks : public Starbucks {
 public:
 
 	Leaf* tree_head;
+	Color currentStarbucksColor;
 
 	marcusrmStarbucks();
 	~marcusrmStarbucks();
@@ -43,6 +53,9 @@ public:
 
 	//puts the imported data into 'importedData' array, and returns the size of that array
 	int importData(Entry* importedData, string fileName);
+
+	void draw(int width, int height, Leaf* head);
+	void drawCoverage(int width, int height, Surface* mySurface);
 
 private:
 	
