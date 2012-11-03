@@ -54,8 +54,9 @@ public:
 	//puts the imported data into 'importedData' array, and returns the size of that array
 	int importData(Entry* importedData, string fileName);
 
-	void draw(int width, int height, Leaf* head);
-	void drawCoverage(int width, int height, Surface* mySurface);
+	void draw(int kAppWidth, int kAppHeight, uint8_t* pixels, int kTextureSize, Leaf* head);
+	void drawCoverage(int kTextureSize, Surface* mySurface);
+	//void draw_circle(Surface* mySurface, int x, int y, int r);
 
 private:
 	
