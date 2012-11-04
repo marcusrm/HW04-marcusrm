@@ -348,96 +348,11 @@ void marcusrmStarbucks::draw(int kAppWidth, int kAppHeight, uint8_t* pixels, int
 	Vec2f coordinate = Vec2f(head->data->x * kAppWidth, kAppHeight-(head->data->y * kAppHeight));
 	gl::color(head->randColor);
 	gl::drawSolidCircle(coordinate, 0.5, 0);
+	
 
 	draw(kAppWidth, kAppHeight, pixels, kTextureSize, head->rightChild);
 	draw(kAppWidth, kAppHeight, pixels, kTextureSize, head->leftChild);
 }
 
-void marcusrmStarbucks::drawCoverage(int kAppWidth, int kAppHeight){
 
 
-	//int shift = 0;
-
-	//~~~~~~~~~~~~~~~~~~DRAW COVERAGE MAP~~~~~~~~~~~~~~~~~~//
-	//first we fill in half of the pixels (the kAppWidth size is odd, so
-	//by doing every other spot, we make a checkerboard
-	for(int j = 0; j < kAppHeight; j++){
-		for(int i = 0; i < kAppWidth; i++){
-
-			//only check the pixel if it's black
-			//if(pixels[offset] != NULL && pixels[offset+1] != NULL && pixels[offset+2] != NULL){
-			this->getNearest(((double)i)/kAppWidth, (kAppHeight - (double)j)/kAppHeight);
-			Vec2f coordinate = Vec2f(i , j);
-			gl::color(this->currentStarbucksColor);
-			gl::drawSolidCircle(coordinate, 0.5, 0);
-			//}
-		}
-		//shift++;
-	}
-
-	Color color = this->currentStarbucksColor;
-/*
-	for(int i = 1; i < kAppWidth; i+=3){
-		for(int j = 0; j < kAppHeight; j++){
-			offset = 3*(i + (kAppHeight - j)*kTextureSize);
-
-			//only check black pixels
-			//if(pixels[offset] != NULL && pixels[offset+1] != NULL && pixels[offset+2] != NULL){
-				//since we have a checkerboard pattern we will assume that if the
-				//pixel above and the pixel to the left of our current pixel are 
-				//the same color, then we can make our pixel the same.
-				if(	i > 2 && j > 0 && 
-					pixels[offset - 6] == pixels[offset-kAppWidth - 6] && 
-					pixels[offset - 5] == pixels[offset-kAppWidth - 5] && 
-					pixels[offset - 4] == pixels[offset-kAppWidth - 4]){
-				
-					pixels[offset] = pixels[offset-6];
-					pixels[offset+1] = pixels[offset-5];
-					pixels[offset+2] = pixels[offset-4];
-
-				}
-				else{
-					this->getNearest(((double)i)/kAppWidth, (kAppHeight - (double)j)/kAppHeight);
-
-					pixels[offset] = this->currentStarbucksColor.r * 255;
-					pixels[offset+1] = this->currentStarbucksColor.g * 255;
-					pixels[offset+2] = this->currentStarbucksColor.b * 255;
-
-				}
-		//	}
-		}
-	}*/
-
-
-}
-/*
-void marcusrmStarbucks::draw_circle(Surface* mySurface, int center_x, int center_y, int r){
-
-	uint8_t* pixels = (*mySurface).getData();
-	int kAppWidth = mySurface->getWidth();
-	int kAppHeight = mySurface->getHeight();
-	int kTextureSize = mySurface->getTe
-
-	for(int y=center_y-r; y<=center_y+r; y++){
-		for(int x=center_x-r; x<=center_x+r; x++){
-			//Bounds test, to make sure we don't access array out of bounds
-			if(y < 0 || x < 0 || x >= kAppWidth || y >= kAppHeight)
-				continue;
-
-			int dist = (int)sqrt((double)((x-center_x)*(x-center_x) + (y-center_y)*(y-center_y)));
-			float ratio = ((float)dist/r);
-
-			if(ratio > 0.5 && dist < r){
-				int offset = 3*(x + y*kTextureSize);
-				//By blending the colors I get a semi-transparent effect
-				pixels[offset] = pixels[offset]*sin(2*PI_*ratio)/transparency;
-				pixels[offset+1] = pixels[offset+1]*sin(2*PI_*ratio)/transparency;
-				pixels[offset+2] = pixels[offset+2]*sin(2*PI_*ratio)/transparency;
-				//check too see if i can attenuate negative side
-				//or just say 0 - pi
-			}
-		}
-	}
-
-}
-*/

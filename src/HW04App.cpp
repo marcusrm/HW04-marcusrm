@@ -17,8 +17,9 @@ class HW04App : public AppBasic {
 	void draw();
 	void prepareSettings(Settings* settings);
 	void keyDown(KeyEvent event);
-	void fillSurface(Color color);
+	Surface* drawCoverage();
 	Surface* mySurface_; //The Surface object whose pixel array we will modify
+	Surface* coverageSurface;
 
 	//Width and height of the screen
 	static const int kAppWidth=500;
@@ -48,6 +49,7 @@ void HW04App::setup()
 	//Surface us_map(loadImage( loadResource(RES_BABY) ));
 
 	mySurface_ = new Surface(kTextureSize,kTextureSize,false);
+	coverageSurface = new Surface(kAppWidth,kAppHeight,false);
 
 	importedData = new Entry[10000];
 
@@ -66,6 +68,8 @@ void HW04App::setup()
 
 	myStarbucks->build(importedData,importedSize);
 	//myStarbucks->printInOrder(myStarbucks->tree_head);
+
+	coverageSurface = drawCoverage();
 
 	/*
 	slowSolution = myStarbucks->getNearestSlow(x,y);
@@ -160,11 +164,8 @@ void HW04App::keyDown( KeyEvent event){
 
 	if(event.getChar() == 'c'){
 		
-		if(!isCoverageOn){
-			//mySurface_->reset();
-			myStarbucks->drawCoverage(kAppWidth, kAppHeight);
-			showNearest = false;
-		}
+		if(isCoverageOn)
+			gl::clear();
 
 		isCoverageOn = !isCoverageOn;
 	}
@@ -196,6 +197,40 @@ void HW04App::fillSurface(Color color){
 }
 */
 
+Surface* HW04App::drawCoverage(){
+	Surface* coverageSurface_copy = new Surface(kAppWidth, kAppHeight,false);
+	int shift = 0;
+	//~~~~~~~~~~~~~~~~~~DRAW COVERAGE MAP~~~~~~~~~~~~~~~~~~//
+	for(int j = 0; j < kAppHeight; j++){
+		for(int i = shift%2; i < kAppWidth; i+=2){
+			myStarbucks->getNearest(((double)i)/kAppWidth, (kAppHeight - (double)j)/kAppHeight);
+			Vec2f currentPixel = Vec2f(i , j);
+			coverageSurface_copy->setPixel(currentPixel,(ColorT<uint8_t>)myStarbucks->currentStarbucksColor);
+		}
+	}
+
+	shift = 1;
+	
+	for(int j = 0; j < kAppHeight; j++){
+		for(int i = shift%2; i < kAppWidth; i+=2){
+			Vec2f currentPixel = Vec2f(i , j);
+			Vec2f upPixel = Vec2f(i , j-1);
+			Vec2f leftPixel = Vec2f(i-1 , j);
+			if(*(coverageSurface_copy->getPixel(upPixel)) == *(coverageSurface_copy->getPixel(currentPixel)) &&
+				*(coverageSurface_copy->getPixel(leftPixel)) == *(coverageSurface_copy->getPixel(currentPixel)))
+				coverageSurface_copy->setPixel(currentPixel,(ColorT<uint8_t>)myStarbucks->currentStarbucksColor);
+			
+			else{
+				myStarbucks->getNearest(((double)i)/kAppWidth, (kAppHeight - (double)j)/kAppHeight);
+				coverageSurface_copy->setPixel(currentPixel,ColorAT<uint8_t>(myStarbucks->currentStarbucksColor,127));
+			}
+		}
+	}
+
+	return coverageSurface_copy;
+
+}
+
 void HW04App::draw()
 {
 
@@ -212,8 +247,11 @@ void HW04App::draw()
 		myStarbucks->draw(kAppWidth, kAppHeight, mySurface_->getData(), kTextureSize, myStarbucks->tree_head);
 		
 	}
-	if(!isCoverageOn)
-		myStarbucks->draw(kAppWidth, kAppHeight, mySurface_->getData(), kTextureSize, myStarbucks->tree_head);
+	
+	if(isCoverageOn){
+		gl::draw(*coverageSurface);
+	}
+	myStarbucks->draw(kAppWidth, kAppHeight, mySurface_->getData(), kTextureSize, myStarbucks->tree_head);
 
 	
 }
