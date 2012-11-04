@@ -21,9 +21,9 @@ class HW04App : public AppBasic {
 	Surface* mySurface_; //The Surface object whose pixel array we will modify
 
 	//Width and height of the screen
-	static const int kAppWidth=201;
-	static const int kAppHeight=201;
-	static const int kTextureSize=512; //Must be the next power of 2 bigger or equal to app dimensions
+	static const int kAppWidth=500;
+	static const int kAppHeight=500;
+	static const int kTextureSize=1024; //Must be the next power of 2 bigger or equal to app dimensions
 
 	marcusrmStarbucks* myStarbucks;
 	Entry* importedData;
@@ -44,8 +44,10 @@ void HW04App::prepareSettings(Settings* settings){
 
 void HW04App::setup()
 {
-	mySurface_ = new Surface(kTextureSize,kTextureSize,false);
+
 	//Surface us_map(loadImage( loadResource(RES_BABY) ));
+
+	mySurface_ = new Surface(kTextureSize,kTextureSize,false);
 
 	importedData = new Entry[10000];
 
@@ -64,9 +66,6 @@ void HW04App::setup()
 
 	myStarbucks->build(importedData,importedSize);
 	//myStarbucks->printInOrder(myStarbucks->tree_head);
-
-	//black out surface
-	fillSurface(Color(0,0,0));
 
 	/*
 	slowSolution = myStarbucks->getNearestSlow(x,y);
@@ -160,37 +159,28 @@ void HW04App::mouseDown( MouseEvent event )
 void HW04App::keyDown( KeyEvent event){
 
 	if(event.getChar() == 'c'){
+		
 		if(!isCoverageOn){
-			gl::clear();
-			myStarbucks->drawCoverage(kTextureSize,mySurface_);
-			isCoverageOn = !isCoverageOn;
+			//mySurface_->reset();
+			myStarbucks->drawCoverage(kAppWidth, kAppHeight);
 			showNearest = false;
 		}
-		else{//clear the coverage map
-			gl::clear();
-			isCoverageOn = !isCoverageOn;
-		}
+
+		isCoverageOn = !isCoverageOn;
 	}
+
 
 }
 
 void HW04App::update()
 {
-	//if using the "show nearest" function, make the dot change color every .25 seconds
-	if(showNearest){
-		if(((int) clock()) % 500 < 250)
-			gl::color(1,1,1);
-		else
-			gl::color(myStarbucks->currentStarbucksColor);
 
-		Vec2f coordinate = Vec2f(nearest->x * kAppWidth, kAppHeight-(nearest->y * kAppHeight));
-		gl::drawSolidCircle(coordinate, 3, 0);
-		
-	}
+	//grab the window surface  
+	//mySurface_ = &(this->copyWinowSurface());
 	
-	myStarbucks->draw(mySurface_,myStarbucks->tree_head);
 }
 
+/*
 void HW04App::fillSurface(Color color){
 
 	uint8_t* pixels = (*mySurface_).getData();
@@ -204,11 +194,26 @@ void HW04App::fillSurface(Color color){
 		}
 	}
 }
+*/
 
 void HW04App::draw()
 {
-	gl::draw(*mySurface_);
 
+	//if using the "show nearest" function, make the dot change color every .25 seconds
+	if(showNearest){
+		if(((int) clock()) % 500 < 250)
+			gl::color(1,1,1);
+		else
+			gl::color(myStarbucks->currentStarbucksColor);
+
+		Vec2f coordinate = Vec2f(nearest->x * kAppWidth, kAppHeight-(nearest->y * kAppHeight));
+		gl::drawSolidCircle(coordinate, 3, 0);
+
+		myStarbucks->draw(kAppWidth, kAppHeight, mySurface_->getData(), kTextureSize, myStarbucks->tree_head);
+		
+	}
+	if(!isCoverageOn)
+		myStarbucks->draw(kAppWidth, kAppHeight, mySurface_->getData(), kTextureSize, myStarbucks->tree_head);
 
 	
 }

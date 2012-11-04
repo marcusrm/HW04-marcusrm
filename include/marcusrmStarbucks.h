@@ -55,7 +55,7 @@ public:
 	int importData(Entry* importedData, string fileName);
 
 	void draw(int kAppWidth, int kAppHeight, uint8_t* pixels, int kTextureSize, Leaf* head);
-	void drawCoverage(int kTextureSize, Surface* mySurface);
+	void drawCoverage(int kAppWidth, int kAppHeight);
 	//void draw_circle(Surface* mySurface, int x, int y, int r);
 
 private:

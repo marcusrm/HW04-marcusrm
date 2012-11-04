@@ -345,46 +345,37 @@ void marcusrmStarbucks::draw(int kAppWidth, int kAppHeight, uint8_t* pixels, int
 	if(head->data == NULL)
 		return;
 
-	int offset = 3*(head->data->x * kAppWidth + (kAppHeight - (head->data->y * kAppHeight))*512);
-
-	pixels[offset] = head->randColor.r * 255;
-	pixels[offset+1] = head->randColor.g * 255;
-	pixels[offset+2] = head->randColor.b * 255;
-
-	//Vec2f coordinate = Vec2f(head->data->x * kAppWidth, kAppHeight-(head->data->y * kAppHeight));
-	//gl::color(head->randColor);
-	//gl::drawSolidCircle(coordinate, 1, 0);
+	Vec2f coordinate = Vec2f(head->data->x * kAppWidth, kAppHeight-(head->data->y * kAppHeight));
+	gl::color(head->randColor);
+	gl::drawSolidCircle(coordinate, 0.5, 0);
 
 	draw(kAppWidth, kAppHeight, pixels, kTextureSize, head->rightChild);
 	draw(kAppWidth, kAppHeight, pixels, kTextureSize, head->leftChild);
 }
 
-void marcusrmStarbucks::drawCoverage(int kTextureSize, Surface* mySurface){
+void marcusrmStarbucks::drawCoverage(int kAppWidth, int kAppHeight){
 
-	uint8_t* pixels = (*mySurface).getData();
-	int kAppWidth = (*mySurface).getWidth();
-	int kAppHeight = (*mySurface).getHeight();
-	int offset;
+
 	//int shift = 0;
 
 	//~~~~~~~~~~~~~~~~~~DRAW COVERAGE MAP~~~~~~~~~~~~~~~~~~//
 	//first we fill in half of the pixels (the kAppWidth size is odd, so
 	//by doing every other spot, we make a checkerboard
-	for(int i = 0; i < kAppWidth; i++){
-		for(int j = 0; j < kAppHeight; j++){
-			offset = 3*(i + j*kTextureSize);
+	for(int j = 0; j < kAppHeight; j++){
+		for(int i = 0; i < kAppWidth; i++){
 
 			//only check the pixel if it's black
 			//if(pixels[offset] != NULL && pixels[offset+1] != NULL && pixels[offset+2] != NULL){
-				this->getNearest(((double)i)/kAppWidth, (kAppHeight - (double)j)/kAppHeight);
-
-				pixels[offset] = this->currentStarbucksColor.r * 255;
-				pixels[offset+1] = this->currentStarbucksColor.g * 255;
-				pixels[offset+2] = this->currentStarbucksColor.b * 255;
+			this->getNearest(((double)i)/kAppWidth, (kAppHeight - (double)j)/kAppHeight);
+			Vec2f coordinate = Vec2f(i , j);
+			gl::color(this->currentStarbucksColor);
+			gl::drawSolidCircle(coordinate, 0.5, 0);
 			//}
 		}
 		//shift++;
 	}
+
+	Color color = this->currentStarbucksColor;
 /*
 	for(int i = 1; i < kAppWidth; i+=3){
 		for(int j = 0; j < kAppHeight; j++){
