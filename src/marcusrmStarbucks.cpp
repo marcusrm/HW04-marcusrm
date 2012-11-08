@@ -347,7 +347,7 @@ void marcusrmStarbucks::draw(int kAppWidth, int kAppHeight, uint8_t* pixels, int
 
 	Vec2f coordinate = Vec2f(head->data->x * kAppWidth, kAppHeight-(head->data->y * kAppHeight));
 	gl::color(head->randColor);
-	gl::drawSolidCircle(coordinate, 0.5, 0);
+	gl::drawSolidCircle(coordinate, 1, 0);
 	
 
 	draw(kAppWidth, kAppHeight, pixels, kTextureSize, head->rightChild);

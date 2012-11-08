@@ -19,18 +19,23 @@ public:
 	Entry* data;
 	Leaf* leftChild;
 	Leaf* rightChild;
-	Color randColor;
+	Color color;
 
 	Leaf(){
 		this->data = NULL;
-		this->randColor = Color(((double)rand())/RAND_MAX,((double)rand())/RAND_MAX,((double)rand())/RAND_MAX);
+		this->color = Color(((double)rand())/RAND_MAX,((double)rand())/RAND_MAX,((double)rand())/RAND_MAX);
+	}
+
+	Leaf(Color color){
+		this->data = NULL;
+		this->color = color;
 	}
 	
 	~Leaf(){
 		delete this->data;
 		delete this->leftChild;
 		delete this->rightChild;
-		delete this->randColor;
+		delete this->color;
 		leftChild = NULL;
 		rightChild = NULL;
 	}

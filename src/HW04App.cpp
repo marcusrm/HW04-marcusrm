@@ -2,6 +2,8 @@
 #include "cinder/gl/gl.h"
 #include "cinder/gl/Texture.h"
 #include "marcusrmStarbucks.h"
+#include "cinder/ImageIo.h"
+#include "Resources.h"
 #include "boost/date_time/posix_time/posix_time.hpp"
 #include <vector>
 
@@ -20,6 +22,7 @@ class HW04App : public AppBasic {
 	Surface* drawCoverage();
 	Surface* mySurface_; //The Surface object whose pixel array we will modify
 	Surface* coverageSurface;
+	Surface* us_map;
 
 	//Width and height of the screen
 	static const int kAppWidth=500;
@@ -46,10 +49,9 @@ void HW04App::prepareSettings(Settings* settings){
 void HW04App::setup()
 {
 
-	//Surface us_map(loadImage( loadResource(RES_BABY) ));
-
 	mySurface_ = new Surface(kTextureSize,kTextureSize,false);
 	coverageSurface = new Surface(kAppWidth,kAppHeight,false);
+	us_map = new Surface(loadImage(loadResource(US_MAP)));
 
 	importedData = new Entry[10000];
 
@@ -147,16 +149,14 @@ void HW04App::setup()
 
 void HW04App::mouseDown( MouseEvent event )
 {
-	if(!isCoverageOn){//don't allow clicks while coverage is on.
-		if(event.isLeft()){
-			gl::clear();//clear the previous highlighted spot
-			nearest = myStarbucks->getNearest(((double)event.getX())/kAppWidth,(kAppHeight - ((double)event.getY()))/kAppHeight);
-			showNearest = true;
-		}
-		else if (event.isRight()){
-			gl::clear();//clear the highlighted spot
-			showNearest = false;
-		}
+	if(event.isLeft()){
+		gl::clear();//clear the previous highlighted spot
+		nearest = myStarbucks->getNearest(((double)event.getX())/kAppWidth,(kAppHeight - ((double)event.getY()))/kAppHeight);
+		showNearest = true;
+	}
+	else if (event.isRight()){
+		gl::clear();//clear the highlighted spot
+		showNearest = false;
 	}
 }
 
@@ -222,7 +222,7 @@ Surface* HW04App::drawCoverage(){
 			
 			else{
 				myStarbucks->getNearest(((double)i)/kAppWidth, (kAppHeight - (double)j)/kAppHeight);
-				coverageSurface_copy->setPixel(currentPixel,ColorAT<uint8_t>(myStarbucks->currentStarbucksColor,127));
+				coverageSurface_copy->setPixel(currentPixel,ColorT<uint8_t>(myStarbucks->currentStarbucksColor));
 			}
 		}
 	}
@@ -233,8 +233,18 @@ Surface* HW04App::drawCoverage(){
 
 void HW04App::draw()
 {
-
+	gl::color(1,1,1);
+	gl::draw(*us_map);
+	
 	//if using the "show nearest" function, make the dot change color every .25 seconds
+	myStarbucks->draw(kAppWidth, kAppHeight, mySurface_->getData(), kTextureSize, myStarbucks->tree_head);
+	
+	if(isCoverageOn){
+		gl::color(1,1,1);
+		gl::draw(*coverageSurface);
+	}
+
+	
 	if(showNearest){
 		if(((int) clock()) % 500 < 250)
 			gl::color(1,1,1);
@@ -243,16 +253,7 @@ void HW04App::draw()
 
 		Vec2f coordinate = Vec2f(nearest->x * kAppWidth, kAppHeight-(nearest->y * kAppHeight));
 		gl::drawSolidCircle(coordinate, 3, 0);
-
-		myStarbucks->draw(kAppWidth, kAppHeight, mySurface_->getData(), kTextureSize, myStarbucks->tree_head);
-		
 	}
-	
-	if(isCoverageOn){
-		gl::draw(*coverageSurface);
-	}
-	myStarbucks->draw(kAppWidth, kAppHeight, mySurface_->getData(), kTextureSize, myStarbucks->tree_head);
-
 	
 }
 
