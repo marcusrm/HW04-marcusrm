@@ -15,6 +15,7 @@ marcusrmStarbucks :: marcusrmStarbucks(){
 	this->tree_head->data = new Entry;
 	this->tree_head->leftChild = new Leaf();
 	this->tree_head->rightChild = new Leaf();
+	this->currentStarbucks = new Leaf();
 
 	//don't want to make a list of entries yet. we don't know the data size
 	//this->locations = NULL;
@@ -219,7 +220,7 @@ void marcusrmStarbucks :: printInOrder(Leaf* head){
 Entry* marcusrmStarbucks :: getNearest(double x, double y){
 
 	Leaf* solution = search(x, y, this->tree_head, true);
-	this->currentStarbucksColor = solution->color;
+	this->currentStarbucks->color = solution->color;
 
 	return solution->data;
 }
@@ -340,7 +341,7 @@ Entry* marcusrmStarbucks :: getNearestSlow(Entry* c, int n, double x, double y){
 	return minEntry;
 }
 
-void marcusrmStarbucks::draw(int kAppWidth, int kAppHeight, uint8_t* pixels, int kTextureSize, Leaf* head){
+void marcusrmStarbucks::draw(int kAppWidth, int kAppHeight, uint8_t* pixels, Leaf* head){
 	
 	if(head->data == NULL)
 		return;
@@ -350,8 +351,8 @@ void marcusrmStarbucks::draw(int kAppWidth, int kAppHeight, uint8_t* pixels, int
 	gl::drawSolidCircle(coordinate, 1, 0);
 	
 
-	draw(kAppWidth, kAppHeight, pixels, kTextureSize, head->rightChild);
-	draw(kAppWidth, kAppHeight, pixels, kTextureSize, head->leftChild);
+	draw(kAppWidth, kAppHeight, pixels, head->rightChild);
+	draw(kAppWidth, kAppHeight, pixels, head->leftChild);
 }
 
 

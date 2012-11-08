@@ -20,15 +20,19 @@ public:
 	Leaf* leftChild;
 	Leaf* rightChild;
 	Color color;
+	int pop;
+	int popChange;
 
 	Leaf(){
 		this->data = NULL;
-		this->color = Color(((double)rand())/RAND_MAX,((double)rand())/RAND_MAX,((double)rand())/RAND_MAX);
+		this->color = Color(0,0,0);
 	}
 
 	Leaf(Color color){
 		this->data = NULL;
 		this->color = color;
+		this->pop = 0;
+		this->popChange = 0;
 	}
 	
 	~Leaf(){
@@ -46,7 +50,7 @@ class marcusrmStarbucks : public Starbucks {
 public:
 
 	Leaf* tree_head;
-	Color currentStarbucksColor;
+	Leaf* currentStarbucks;
 
 	marcusrmStarbucks();
 	~marcusrmStarbucks();
@@ -59,7 +63,7 @@ public:
 	//puts the imported data into 'importedData' array, and returns the size of that array
 	int importData(Entry* importedData, string fileName);
 
-	void draw(int kAppWidth, int kAppHeight, uint8_t* pixels, int kTextureSize, Leaf* head);
+	void draw(int kAppWidth, int kAppHeight, uint8_t* pixels, Leaf* head);
 	void drawCoverage(int kAppWidth, int kAppHeight);
 	//void draw_circle(Surface* mySurface, int x, int y, int r);
 
