@@ -219,7 +219,7 @@ void marcusrmStarbucks :: printInOrder(Leaf* head){
 Entry* marcusrmStarbucks :: getNearest(double x, double y){
 
 	Leaf* solution = search(x, y, this->tree_head, true);
-	this->currentStarbucksColor = solution->randColor;
+	this->currentStarbucksColor = solution->color;
 
 	return solution->data;
 }
@@ -346,7 +346,7 @@ void marcusrmStarbucks::draw(int kAppWidth, int kAppHeight, uint8_t* pixels, int
 		return;
 
 	Vec2f coordinate = Vec2f(head->data->x * kAppWidth, kAppHeight-(head->data->y * kAppHeight));
-	gl::color(head->randColor);
+	gl::color(head->color);
 	gl::drawSolidCircle(coordinate, 1, 0);
 	
 

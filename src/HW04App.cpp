@@ -11,6 +11,12 @@ using namespace ci;
 using namespace ci::app;
 using namespace std;
 
+struct censusPoint{
+	double x;
+	double y;
+	int pop;
+};
+
 class HW04App : public AppBasic {
   public:
 	void setup();
@@ -19,9 +25,12 @@ class HW04App : public AppBasic {
 	void draw();
 	void prepareSettings(Settings* settings);
 	void keyDown(KeyEvent event);
-	Surface* drawCoverage();
+	void drawCoverage();
+	void assignCensusColor(Leaf* head);
+	void importCensusData(vector<censusPoint>* census, string filename);
 	Surface* mySurface_; //The Surface object whose pixel array we will modify
 	Surface* coverageSurface;
+	Surface* censusSurface;
 	Surface* us_map;
 
 	//Width and height of the screen
@@ -30,11 +39,12 @@ class HW04App : public AppBasic {
 	static const int kTextureSize=1024; //Must be the next power of 2 bigger or equal to app dimensions
 
 	marcusrmStarbucks* myStarbucks;
-	Entry* importedData;
-	int importedSize;
+	Entry* importedStarbucksData;
+	int starbucksDataSize;
 	Entry* nearest;
 	double x;
 	double y;
+
 
 	bool isCoverageOn;
 	bool showNearest;
@@ -48,30 +58,33 @@ void HW04App::prepareSettings(Settings* settings){
 
 void HW04App::setup()
 {
+	
+	vector<censusPoint>* census2000 = new vector<censusPoint>();
+	vector<censusPoint>* census2010 = new vector<censusPoint>();
 
 	mySurface_ = new Surface(kTextureSize,kTextureSize,false);
 	coverageSurface = new Surface(kAppWidth,kAppHeight,false);
+	censusSurface = new Surface(kAppWidth,kAppHeight,false);
 	us_map = new Surface(loadImage(loadResource(US_MAP)));
 
-	importedData = new Entry[10000];
-
-	x = 0.6375931031084;
-	y = 0.9758290208923;
+	importedStarbucksData = new Entry[10000];
 
 	isCoverageOn = false;
 	showNearest = false;
 
 	myStarbucks = new marcusrmStarbucks();
 
-	string fileName = "../src/Starbucks_2006.csv";
-	importedSize = myStarbucks->importData(importedData, fileName);
+	starbucksDataSize = myStarbucks->importData(importedStarbucksData, "../src/Starbucks_2006.csv");
 
 	//console() << (*(importedData + sizeof(Entry)*180))->identifier << endl;
 
-	myStarbucks->build(importedData,importedSize);
+	myStarbucks->build(importedStarbucksData,starbucksDataSize);
 	//myStarbucks->printInOrder(myStarbucks->tree_head);
 
-	coverageSurface = drawCoverage();
+	importCensusData(census2000,"../src/Census_2000.csv");
+	importCensusData(census2010,"../src/Census_2010.csv");
+	assignCensusColor(myStarbucks->tree_head);
+	drawCoverage();
 
 	/*
 	slowSolution = myStarbucks->getNearestSlow(x,y);
@@ -181,31 +194,65 @@ void HW04App::update()
 	
 }
 
-/*
-void HW04App::fillSurface(Color color){
+void HW04App::importCensusData(vector<censusPoint>* census, string filename){
 
-	uint8_t* pixels = (*mySurface_).getData();
+	try{
+		ifstream fid (filename, ifstream::in);
 
-	for(int y = 0; y < kAppHeight; y++){
-		for(int x = 0; x < kAppWidth; x++){
-			int offset = 3* (x + y*kTextureSize);
-			pixels[offset] = color.r;
-			pixels[offset+1] = color.g;
-			pixels[offset+2] = color.b;
+		char* buffer = new char[256];
+		char* tokens = new char[256];
+		int x;
+		int y;
+		
+		while(!fid.eof()){//Brinkman says that this eof shouldn't work. (last bits)
+			censusPoint* temp = new censusPoint;
+
+			fid.getline(buffer,256,'\r');
+			
+			//skip the first four tokens of each line
+			strtok(buffer,",");
+			strtok(NULL,",");
+			strtok(NULL,",");
+			strtok(NULL,",");
+			
+			temp->pop = (int) atof(strtok(NULL,","));
+
+			y = atof(strtok(NULL,","));
+			temp->y = (y - 24)/(49-24);
+
+			x = atof(strtok(NULL,","));
+			temp->x = (x - (-125))/((-63) - (-125));
+			
+			census->push_back(*temp);
 		}
+
+		fid.close();
+
+	}catch(ios_base::failure){
+		cout << "Error Reading File\n";
 	}
 }
-*/
 
-Surface* HW04App::drawCoverage(){
-	Surface* coverageSurface_copy = new Surface(kAppWidth, kAppHeight,false);
+void HW04App::assignCensusColor(Leaf* head){
+
+	if(head->data == NULL)
+		return;
+
+	
+
+	assignCensusColor(head->leftChild);
+	assignCensusColor(head->rightChild);
+}
+
+void HW04App::drawCoverage(){
+	
 	int shift = 0;
 	//~~~~~~~~~~~~~~~~~~DRAW COVERAGE MAP~~~~~~~~~~~~~~~~~~//
 	for(int j = 0; j < kAppHeight; j++){
 		for(int i = shift%2; i < kAppWidth; i+=2){
 			myStarbucks->getNearest(((double)i)/kAppWidth, (kAppHeight - (double)j)/kAppHeight);
 			Vec2f currentPixel = Vec2f(i , j);
-			coverageSurface_copy->setPixel(currentPixel,(ColorT<uint8_t>)myStarbucks->currentStarbucksColor);
+			coverageSurface->setPixel(currentPixel,(ColorT<uint8_t>)myStarbucks->currentStarbucksColor);
 		}
 	}
 
@@ -216,18 +263,16 @@ Surface* HW04App::drawCoverage(){
 			Vec2f currentPixel = Vec2f(i , j);
 			Vec2f upPixel = Vec2f(i , j-1);
 			Vec2f leftPixel = Vec2f(i-1 , j);
-			if(*(coverageSurface_copy->getPixel(upPixel)) == *(coverageSurface_copy->getPixel(currentPixel)) &&
-				*(coverageSurface_copy->getPixel(leftPixel)) == *(coverageSurface_copy->getPixel(currentPixel)))
-				coverageSurface_copy->setPixel(currentPixel,(ColorT<uint8_t>)myStarbucks->currentStarbucksColor);
+			if(*(coverageSurface->getPixel(upPixel)) == *(coverageSurface->getPixel(currentPixel)) &&
+				*(coverageSurface->getPixel(leftPixel)) == *(coverageSurface->getPixel(currentPixel)))
+				coverageSurface->setPixel(currentPixel,(ColorT<uint8_t>)myStarbucks->currentStarbucksColor);
 			
 			else{
 				myStarbucks->getNearest(((double)i)/kAppWidth, (kAppHeight - (double)j)/kAppHeight);
-				coverageSurface_copy->setPixel(currentPixel,ColorT<uint8_t>(myStarbucks->currentStarbucksColor));
+				coverageSurface->setPixel(currentPixel,ColorT<uint8_t>(myStarbucks->currentStarbucksColor));
 			}
 		}
 	}
-
-	return coverageSurface_copy;
 
 }
 
