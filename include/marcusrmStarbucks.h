@@ -20,12 +20,16 @@ public:
 	Leaf* leftChild;
 	Leaf* rightChild;
 	Color color;
+	Color popColor;
 	int pop;
 	int popChange;
 
 	Leaf(){
 		this->data = NULL;
-		this->color = Color(0,0,0);
+		this->color = Color(((double)rand())/RAND_MAX,((double)rand())/RAND_MAX,((double)rand())/RAND_MAX);
+		this->popColor = Color(0,0,0);
+		this->pop = 0;
+		this->popChange = 0;
 	}
 
 	Leaf(Color color){

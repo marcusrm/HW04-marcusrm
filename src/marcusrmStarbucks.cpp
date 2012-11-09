@@ -220,7 +220,7 @@ void marcusrmStarbucks :: printInOrder(Leaf* head){
 Entry* marcusrmStarbucks :: getNearest(double x, double y){
 
 	Leaf* solution = search(x, y, this->tree_head, true);
-	this->currentStarbucks->color = solution->color;
+	this->currentStarbucks = solution;
 
 	return solution->data;
 }

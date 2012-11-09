@@ -84,9 +84,9 @@ void HW04App::setup()
 
 	//build a matrix the size of the screen that shows what starbucks each pixel is closest to.
 	coverageMatrix = new vector<Leaf*>();
-	for(int i = 0; i < kAppHeight; i++){
-		for(int j = 0; j < kAppWidth; j++){
-			myStarbucks->getNearest(((double)j)/kAppWidth, 1 - ((double)i)/kAppHeight);
+	for(int j = 0; j < kAppHeight; j++){
+		for(int i = 0; i < kAppWidth; i++){
+			myStarbucks->getNearest(((double)i)/kAppWidth, 1 - ((double)j)/kAppHeight);
 			coverageMatrix->push_back(myStarbucks->currentStarbucks);
 		}
 	}
@@ -98,6 +98,7 @@ void HW04App::setup()
 	assignPopulationChange(census2000);
 	assignColor(myStarbucks->tree_head);
 	drawCoverage();
+
 }
 
 void HW04App::mouseDown( MouseEvent event )
@@ -138,11 +139,9 @@ void HW04App::importCensusData(vector<censusPoint>* census, string filename){
 
 		char* buffer = new char[256];
 		char* tokens = new char[256];
-		int x;
-		int y;
+		censusPoint* temp = new censusPoint;
 		
 		while(!fid.eof()){//Brinkman says that this eof shouldn't work. (last bits)
-			censusPoint* temp = new censusPoint;
 
 			fid.getline(buffer,256,'\r');
 			
@@ -154,11 +153,9 @@ void HW04App::importCensusData(vector<censusPoint>* census, string filename){
 			
 			temp->pop = (int) atof(strtok(NULL,","));
 
-			y = atof(strtok(NULL,","));
-			temp->y = (y - 24)/(49-24);
+			temp->y = 1 - atof(strtok(NULL,","));
 
-			x = atof(strtok(NULL,","));
-			temp->x = (x - (-125))/((-63) - (-125));
+			temp->x = atof(strtok(NULL,","));
 			
 			census->push_back(*temp);
 		}
@@ -200,16 +197,31 @@ void HW04App::assignPopulation(vector<censusPoint>* census){
 void HW04App::assignColor(Leaf* head){
 	
 	double popColor;
+	double popThreshold = 200;
 
 	if(head->data == NULL)
 		return;
 
-	popColor = min(abs(head->popChange),20000) / 20000.0;
+	if(abs(head->popChange) > popThreshold){//LARGE POPULATION CHANGE
 
-	if(head->popChange > 0)
-		head->color = Color(0,popColor,0);
-	else
-		head->color = Color(popColor,0,0);
+		popColor = min(abs(head->popChange),2000) / 2000.0;
+
+		if(head->popChange > 0)
+			head->popColor = Color(0,popColor,0);
+		else
+			head->popColor = Color(popColor,0,0);
+	}
+	else{//SMALL POPULATION CHANGE
+
+		popColor = abs(head->popChange)/popThreshold;
+
+		if(head->popChange > 0)
+			head->popColor = Color(0,popColor,popColor);
+		else if(head->popChange < 0)
+			head->popColor = Color(popColor,0,popColor);
+		else
+			head->popColor = Color(.5,.5,.5);
+	}
 
 	assignColor(head->leftChild);
 	assignColor(head->rightChild);
@@ -222,7 +234,7 @@ void HW04App::drawCoverage(){
 	for(int j = 0; j < kAppHeight; j++){
 		for(int i = 0; i < kAppWidth; i++){
 			current = coverageMatrix->at(i+j*kAppWidth);
-			coverageSurface->setPixel(Vec2f(i , j),(ColorT<uint8_t>)current->color);
+			coverageSurface->setPixel(Vec2f(i,j),(ColorT<uint8_t>)current->popColor);
 		}
 	}
 
