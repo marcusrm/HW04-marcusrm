@@ -12,9 +12,14 @@ using namespace ci::app;
 using namespace std;
 
 struct censusPoint{
+	//int state;
+	//int count;
+	//int tract;
+	//int block;	
 	double x;
 	double y;
 	int pop;
+	//int popChange;
 };
 
 class HW04App : public AppBasic {
@@ -27,8 +32,6 @@ class HW04App : public AppBasic {
 	void keyDown(KeyEvent event);
 	void drawCoverage();
 	void importCensusData(vector<censusPoint>* census, string filename);
-	void assignPopulation(vector<censusPoint>* census);
-	void assignPopulationChange(vector<censusPoint>* census);
 	void assignColor(Leaf* head);
 
 	Surface* starbucksSurface;
@@ -94,8 +97,37 @@ void HW04App::setup()
 
 	importCensusData(census2000,"../src/Census_2000.csv");
 	importCensusData(census2010,"../src/Census_2010.csv");
-	assignPopulation(census2010);
-	assignPopulationChange(census2000);
+
+	int xCoord;
+	int yCoord;
+	Leaf* current;
+	/*
+	for(int i = 0; i < census2010->size() && ; i++){
+		censusPoint* a = &census2010->at(i);
+		censusPoint* b = &census2010->at(i);
+		
+		if(a->block == b->block && a->block == b->block && a->block == b->block && a->block == b->block)
+			a->popChange = a->pop - b->pop;
+		
+		for(int j = i; j < census2000->size(); j++){
+
+		}
+	}*/
+	int i;
+	for(i = 0; i < census2010->size(); i++){
+		xCoord = floor((census2010->at(i).x * kAppWidth));
+		yCoord = floor((census2010->at(i).y * kAppHeight));
+		current = coverageMatrix->at(xCoord + yCoord*kAppWidth);
+		current->pop += census2010->at(i).pop;
+	}
+
+	for(i = 0; i < census2000->size(); i++){
+		xCoord = floor((census2000->at(i).x * kAppWidth));
+		yCoord = floor((census2000->at(i).y * kAppHeight));
+		current = coverageMatrix->at(xCoord + yCoord*kAppWidth);
+		current->oldPop += census2000->at(i).pop;
+	}
+
 	assignColor(myStarbucks->tree_head);
 	drawCoverage();
 
@@ -153,9 +185,9 @@ void HW04App::importCensusData(vector<censusPoint>* census, string filename){
 			
 			temp->pop = (int) atof(strtok(NULL,","));
 
-			temp->y = 1 - atof(strtok(NULL,","));
-
 			temp->x = atof(strtok(NULL,","));
+
+			temp->y = 1 - atof(strtok(NULL,","));
 			
 			census->push_back(*temp);
 		}
@@ -167,62 +199,37 @@ void HW04App::importCensusData(vector<censusPoint>* census, string filename){
 	}
 }
 
-//put in an older census report to find the difference between the 
-void HW04App::assignPopulationChange(vector<censusPoint>* census){
-	int xCoord;
-	int yCoord;
-	Leaf* current;
-	
-	for(int i = 0; i < census->size(); i++){
-		xCoord = (int) (census->at(i).x * kAppWidth);
-		yCoord = (int) (census->at(i).y * kAppHeight);
-		current = coverageMatrix->at(xCoord + yCoord*kAppWidth);
-		current->popChange = current->pop - census->at(i).pop;
-	}
-}
-
-void HW04App::assignPopulation(vector<censusPoint>* census){
-	int xCoord;
-	int yCoord;
-	Leaf* current;
-	
-	for(int i = 0; i < census->size(); i++){
-		xCoord = (int) (census->at(i).x * kAppWidth);
-		yCoord = (int) (census->at(i).y * kAppHeight);
-		current = coverageMatrix->at(xCoord + yCoord*kAppWidth);
-		current->pop = census->at(i).pop;
-	}
-}
-
 void HW04App::assignColor(Leaf* head){
 	
 	double popColor;
-	double popThreshold = 200;
+	double popThreshold = 1000;
+	int popChange = head->pop - head->oldPop;
 
 	if(head->data == NULL)
 		return;
 
-	if(abs(head->popChange) > popThreshold){//LARGE POPULATION CHANGE
+	if(head->pop != 0 && head->oldPop != 0){
+		if(abs(popChange) > popThreshold){//LARGE POPULATION CHANGE
 
-		popColor = min(abs(head->popChange),2000) / 2000.0;
+			popColor = min(abs(popChange),30000) / 30000.0;
 
-		if(head->popChange > 0)
-			head->popColor = Color(0,popColor,0);
-		else
-			head->popColor = Color(popColor,0,0);
+			if(popChange > 0)
+				head->popColor = Color(0,popColor,0);
+			else
+				head->popColor = Color(popColor,0,0);
+		}
+		else{//SMALL POPULATION CHANGE
+
+			popColor = abs(popChange)/popThreshold;
+
+			if(popChange > 0)
+				head->popColor = Color(0,popColor,popColor);
+			else if(popChange < 0)
+				head->popColor = Color(popColor,0,popColor);
+			else
+				head->popColor = Color(.5,.5,.5);
+		}
 	}
-	else{//SMALL POPULATION CHANGE
-
-		popColor = abs(head->popChange)/popThreshold;
-
-		if(head->popChange > 0)
-			head->popColor = Color(0,popColor,popColor);
-		else if(head->popChange < 0)
-			head->popColor = Color(popColor,0,popColor);
-		else
-			head->popColor = Color(.5,.5,.5);
-	}
-
 	assignColor(head->leftChild);
 	assignColor(head->rightChild);
 }

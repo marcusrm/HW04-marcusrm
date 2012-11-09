@@ -22,21 +22,14 @@ public:
 	Color color;
 	Color popColor;
 	int pop;
-	int popChange;
+	int oldPop;
 
 	Leaf(){
 		this->data = NULL;
 		this->color = Color(((double)rand())/RAND_MAX,((double)rand())/RAND_MAX,((double)rand())/RAND_MAX);
 		this->popColor = Color(0,0,0);
 		this->pop = 0;
-		this->popChange = 0;
-	}
-
-	Leaf(Color color){
-		this->data = NULL;
-		this->color = color;
-		this->pop = 0;
-		this->popChange = 0;
+		this->oldPop = 0;
 	}
 	
 	~Leaf(){
