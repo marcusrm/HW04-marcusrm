@@ -1,3 +1,26 @@
+/*
+* author: RJ Marcus
+* file: HW04App.cpp
+* date: Nov 1, 2012
+* class: CSE274--Dr. Brinkman
+* 
+*
+*	This program satisfies requirements: A, B, C, E, F, G
+*
+*	The program takes about 15 seconds to start up. Don't worry, it'll load.
+*
+*	For the coverage map for change in population density:
+*
+	//the lighter the color is, the bigger the population change. 
+	//if a region seems dark, then it had relatively little change.
+	//large increase: green
+	//small/medium increase: teal
+	//small/medium decrease: purple
+	//large decrease: red
+	//zero change: grey
+*/
+
+
 #include "cinder/app/AppBasic.h"
 #include "cinder/gl/gl.h"
 #include "cinder/gl/Texture.h"
@@ -12,14 +35,9 @@ using namespace ci::app;
 using namespace std;
 
 struct censusPoint{
-	//int state;
-	//int count;
-	//int tract;
-	//int block;	
 	double x;
 	double y;
 	int pop;
-	//int popChange;
 };
 
 class HW04App : public AppBasic {
@@ -85,7 +103,8 @@ void HW04App::setup()
 
 	myStarbucks->build(importedStarbucksData,starbucksDataSize);
 
-	//build a matrix the size of the screen that shows what starbucks each pixel is closest to.
+	//for each pixel on the screen, find the closest starbucks and put
+	//a pointer to it at that index of the coverageMatrix.
 	coverageMatrix = new vector<Leaf*>();
 	for(int j = 0; j < kAppHeight; j++){
 		for(int i = 0; i < kAppWidth; i++){
@@ -101,47 +120,64 @@ void HW04App::setup()
 	int xCoord;
 	int yCoord;
 	Leaf* current;
-	/*
-	for(int i = 0; i < census2010->size() && ; i++){
-		censusPoint* a = &census2010->at(i);
-		censusPoint* b = &census2010->at(i);
-		
-		if(a->block == b->block && a->block == b->block && a->block == b->block && a->block == b->block)
-			a->popChange = a->pop - b->pop;
-		
-		for(int j = i; j < census2000->size(); j++){
 
-		}
-	}*/
-	int i;
-	for(i = 0; i < census2010->size(); i++){
+	//take the 2010 population for each city in the census, 
+	//look up the closest starbucks at that location in the 
+	//coveragematrix, then update that starbuck's population
+	for(int i = 0; i < census2010->size(); i++){
 		xCoord = floor((census2010->at(i).x * kAppWidth));
 		yCoord = floor((census2010->at(i).y * kAppHeight));
 		current = coverageMatrix->at(xCoord + yCoord*kAppWidth);
 		current->pop += census2010->at(i).pop;
 	}
 
-	for(i = 0; i < census2000->size(); i++){
+	//same thing as before, but with the 2000 population
+	for(int i = 0; i < census2000->size(); i++){
 		xCoord = floor((census2000->at(i).x * kAppWidth));
 		yCoord = floor((census2000->at(i).y * kAppHeight));
 		current = coverageMatrix->at(xCoord + yCoord*kAppWidth);
 		current->oldPop += census2000->at(i).pop;
 	}
 
+	//decide color for each starbucks based on population change
 	assignColor(myStarbucks->tree_head);
+
 	drawCoverage();
+
+	//now average the pixels of the coverage map with the us map
+	//for a transparency effect so we can see borders when coverage is
+	//turned on. Colors are a little easier to differentiate between
+	//when this isn't on, but it wouldn't be terribly helpful
+	//if you couldn't see the borders.
+	ColorAT<uint8_t> coverage_pixel;
+	ColorAT<uint8_t> map_pixel;
+	ColorAT<uint8_t> newColor;
+	for(int j = 0; j < kAppHeight; j++){
+		for(int i = 0; i < kAppWidth; i++){
+			coverage_pixel = coverageSurface->getPixel(Vec2f(i,j));
+			map_pixel = us_map->getPixel(Vec2f(i,j));
+
+			newColor.r = (coverage_pixel.r + map_pixel.r * 0.5)/2;
+			newColor.g = (coverage_pixel.g + map_pixel.g * 0.5)/2;
+			newColor.b = (coverage_pixel.b + map_pixel.b * 0.5)/2;
+
+			coverageSurface->setPixel(Vec2f(i,j),newColor);
+
+		}
+	}
 
 }
 
 void HW04App::mouseDown( MouseEvent event )
 {
 	if(event.isLeft()){
-		gl::clear();//clear the previous highlighted spot
+		//clear the previous highlighted spot and show the new one
+		gl::clear();
 		nearest = myStarbucks->getNearest(((double)event.getX())/kAppWidth,(kAppHeight - ((double)event.getY()))/kAppHeight);
 		showNearest = true;
 	}
 	else if (event.isRight()){
-		gl::clear();//clear the highlighted spot
+		gl::clear();//clears the highlighted spot and turns off shownearest
 		showNearest = false;
 	}
 }
@@ -150,9 +186,11 @@ void HW04App::keyDown( KeyEvent event){
 
 	if(event.getChar() == 'c'){
 		
+		//clear surfaces if coverage was on before.
 		if(isCoverageOn)
 			gl::clear();
 
+		//toggle coverage surface
 		isCoverageOn = !isCoverageOn;
 	}
 
@@ -173,7 +211,7 @@ void HW04App::importCensusData(vector<censusPoint>* census, string filename){
 		char* tokens = new char[256];
 		censusPoint* temp = new censusPoint;
 		
-		while(!fid.eof()){//Brinkman says that this eof shouldn't work. (last bits)
+		while(!fid.eof()){
 
 			fid.getline(buffer,256,'\r');
 			
@@ -200,9 +238,10 @@ void HW04App::importCensusData(vector<censusPoint>* census, string filename){
 }
 
 void HW04App::assignColor(Leaf* head){
-	
+
 	double popColor;
-	double popThreshold = 1000;
+	double popThreshold = 11000; //value chosen by trial and error
+	int popMax = 22000; //value chosen by trial and error
 	int popChange = head->pop - head->oldPop;
 
 	if(head->data == NULL)
@@ -211,22 +250,22 @@ void HW04App::assignColor(Leaf* head){
 	if(head->pop != 0 && head->oldPop != 0){
 		if(abs(popChange) > popThreshold){//LARGE POPULATION CHANGE
 
-			popColor = min(abs(popChange),30000) / 30000.0;
+			popColor = min(abs(popChange),popMax) / ((double)popMax);
 
-			if(popChange > 0)
+			if(popChange > 0) //positive change; make green
 				head->popColor = Color(0,popColor,0);
-			else
+			else //negative change; make red
 				head->popColor = Color(popColor,0,0);
 		}
 		else{//SMALL POPULATION CHANGE
 
 			popColor = abs(popChange)/popThreshold;
 
-			if(popChange > 0)
+			if(popChange > 0) //positive change; make teal
 				head->popColor = Color(0,popColor,popColor);
-			else if(popChange < 0)
+			else if(popChange < 0) //negative change; make purple
 				head->popColor = Color(popColor,0,popColor);
-			else
+			else //no change; make grey.
 				head->popColor = Color(.5,.5,.5);
 		}
 	}
@@ -238,6 +277,8 @@ void HW04App::drawCoverage(){
 	
 	Leaf* current;
 	//~~~~~~~~~~~~~~~~~~DRAW COVERAGE MAP~~~~~~~~~~~~~~~~~~//
+	//paint each pixel on the coverage surface the color of the closest 
+	//starbucks at that pixel (from the coveragematrix)
 	for(int j = 0; j < kAppHeight; j++){
 		for(int i = 0; i < kAppWidth; i++){
 			current = coverageMatrix->at(i+j*kAppWidth);
@@ -252,7 +293,6 @@ void HW04App::draw()
 	gl::color(1,1,1);
 	gl::draw(*us_map);
 	
-	//if using the "show nearest" function, make the dot change color every .25 seconds
 	myStarbucks->draw(kAppWidth, kAppHeight, starbucksSurface->getData(), myStarbucks->tree_head);
 	
 	if(isCoverageOn){
@@ -260,7 +300,7 @@ void HW04App::draw()
 		gl::draw(*coverageSurface);
 	}
 
-	
+	//makes the dot change color every .25 seconds
 	if(showNearest){
 		if(((int) clock()) % 500 < 250)
 			gl::color(1,1,1);
