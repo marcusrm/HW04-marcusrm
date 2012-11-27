@@ -147,7 +147,7 @@ void marcusrmStarbucks :: build(Entry* c, int n){
 
 }
 
-
+//I found this method on an online tutorial website and slightly modified it
 void marcusrmStarbucks::shuffle(Entry* c, int n){
        
 	srand ( unsigned ( time (NULL) ) );
